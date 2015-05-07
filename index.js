@@ -2,11 +2,14 @@ var path = require('path');
 var async = require('async');
 var config = require(process.env.HISTOGRAPH_CONFIG);
 var parseArgs = require('minimist');
+var inferencing = require('./inferencing');
 require('colors');
 
 var steps = [
   'download',
-  'convert'
+  'convert',
+  'infer',
+  'done'
 ];
 
 var argv = parseArgs(process.argv.slice(2));
@@ -20,14 +23,20 @@ if (argv._.length > 0) {
 async.eachSeries(sources, function(source, callback) {
   var importer = require('./' + path.join(source, source));
 
+  // Always add infer step to importer
+  importer.infer = function(config, callback) {
+    inferencing(source, callback);
+  };
+
   console.log('Processing source ' + source.inverse + ':');
   async.eachSeries(steps, function(step, callback) {
-    if (!argv.steps || (argv.steps && argv.steps.split(',').indexOf(step) > -1)) {
+    if (!argv.steps || (argv.steps && argv.steps.split(',').indexOf(step) > -1) || step === 'done') {
       if (importer[step]) {
         console.log('  Executing step ' + step.underline + '...');
+
         importer[step](config.data[source], function(err) {
           if (err) {
-            console.log('    Error: '.red + err);
+            console.log('    Error: '.red + JSON.stringify(err));
           } else {
             console.log('    Done!'.green);
           }
@@ -39,7 +48,7 @@ async.eachSeries(sources, function(source, callback) {
       }
     } else {
       if (importer[step]) {
-        console.log('  Skipping step ' + step.underline + '...');
+        console.log(('  Skipping step ' + step.underline + '...').gray);
       }
 
       callback();
@@ -58,3 +67,4 @@ async.eachSeries(sources, function(source, callback) {
 function() {
   console.log('\nAll sources done!'.green.underline);
 });
+

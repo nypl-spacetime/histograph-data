@@ -1,0 +1,30 @@
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX dc: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gvp: <http://vocab.getty.edu/ontology#>
+PREFIX tgn: <http://vocab.getty.edu/tgn/>
+
+CONSTRUCT {
+  [] gvp:term ?placeLabel ;
+    dc:source {{ parent }} ;
+    gvp:placeTypePreferred ?type ;
+    tgn:typeTerm ?typeTerm ;
+    geo:long ?long ;
+    geo:lat ?lat .
+}
+WHERE {
+  {{ parent }} a gvp:AdminPlaceConcept ;
+    gvp:prefLabelGVP ?prefLabel ;
+    gvp:placeTypePreferred ?type ;
+    gvp:broaderPreferred ?broader ;
+	  foaf:focus ?focus .
+
+  ?type gvp:prefLabelGVP ?typeLabel .
+  ?typeLabel gvp:term ?typeTerm .
+
+  ?prefLabel gvp:term ?placeLabel .
+
+  ?focus geo:long ?long ;
+    geo:lat ?lat .
+}

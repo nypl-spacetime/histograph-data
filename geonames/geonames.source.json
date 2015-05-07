@@ -3,9 +3,9 @@
   "title": "GeoNames",
   "license": "CC BY 3.0",
   "description": "The GeoNames geographical database covers all countries and contains over eight million placenames that are available for download free of charge.",
-  "author": "Histograph",
+  "author": "GeoNames",
   "website": "http://www.geonames.org/",
   "edits": "",
-  "editor": "",
+  "editor": "Histograph",
   "sourceCreationDate": ""
 }
