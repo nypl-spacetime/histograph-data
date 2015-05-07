@@ -3,10 +3,8 @@ var path = require('path');
 var SparqlClient = require('sparql-client');
 var async = require('async');
 var xml2js = require('xml2js');
-var pitsAndRelations = require('../pits-and-relations')({
-  source: 'tgn',
-  truncate: true
-});
+
+var pitsAndRelations;
 
 // TGN configuration
 var sparqlFiles = [
@@ -57,6 +55,11 @@ exports.download = function(config, callback) {
 };
 
 exports.convert = function(config, callback) {
+  pitsAndRelations = require('../pits-and-relations')({
+    source: 'tgn',
+    truncate: true
+  });
+
   var parser = new xml2js.Parser();
 
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
@@ -204,6 +207,8 @@ exports.convert = function(config, callback) {
 };
 
 exports.done = function(config, callback) {
-  pitsAndRelations.close();
+  if (pitsAndRelations) {
+    pitsAndRelations.close();
+  }
   callback();
 };

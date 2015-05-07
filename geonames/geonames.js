@@ -6,10 +6,8 @@ var csv = require('csv');
 var async = require('async');
 var es = require('event-stream');
 var AdmZip = require('adm-zip');
-var pitsAndRelations = require('../pits-and-relations')({
-  source: 'geonames',
-  truncate: true
-});
+
+var pitsAndRelations;
 
 // GeoNames configuration
 var baseUrl = 'http://download.geonames.org/export/dump/';
@@ -47,7 +45,6 @@ var types = {
 };
 
 exports.download = function(config, callback) {
-
   var countryFilenames = config.countries.map(function(country) {
     return country + '.zip';
   });
@@ -144,6 +141,11 @@ function getRelations(adminCodes, obj) {
 }
 
 exports.convert = function(config, callback) {
+  pitsAndRelations = require('../pits-and-relations')({
+    source: 'geonames',
+    truncate: true
+  });
+
   getAdminCodes(config, function(err, adminCodes) {
     if (err) {
       callback(err);
@@ -234,6 +236,8 @@ exports.convert = function(config, callback) {
 };
 
 exports.done = function(config, callback) {
-  pitsAndRelations.close();
+  if (pitsAndRelations) {
+    pitsAndRelations.close();
+  }
   callback();
 };
