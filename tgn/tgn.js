@@ -141,14 +141,15 @@ exports.convert = function(config, callback) {
         };
       }
 
-      // var estStart = getElementTagValue(element, 'gvp:estStart');
-      // var estEnd = getElementTagValue(element, 'gvp:estEnd');
-      // if (estStart) {
-      //   pit.hasBeginning = estStart;
-      // }
-      // if (estEnd) {
-      //   pit.hasEnd = estEnd;
-      // }
+      // TODO: use just years, and specify fuzziness!
+      var estStart = getElementTagValue(element, 'gvp:estStart');
+      var estEnd = getElementTagValue(element, 'gvp:estEnd');
+      if (estStart) {
+        pit.hasBeginning = estStart + '-01-01';
+      }
+      if (estEnd) {
+        pit.hasEnd = estEnd + '-12-31';
+      }
 
       emit.push({
         type: 'pits',
