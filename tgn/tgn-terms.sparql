@@ -1,0 +1,38 @@
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX dc: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX skosxl: <http://www.w3.org/2008/05/skos-xl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX gvp: <http://vocab.getty.edu/ontology#>
+PREFIX tgn: <http://vocab.getty.edu/tgn/>
+
+CONSTRUCT {
+  [] gvp:term ?termLabel ;
+    dc:source ?altLabel ;
+    rdf:subject ?place ;
+    rdfs:comment ?termComment ;
+    gvp:estStart ?termEstStart ;
+    gvp:estEnd ?termEstEnd ;
+    gvp:placeTypePreferred ?type ;
+    tgn:typeTerm ?typeTerm ;
+    dc:identifier ?termIdentifier .
+}
+WHERE {
+  ?place a gvp:AdminPlaceConcept ;
+
+    gvp:broaderExtended {{ parent }} ;
+    gvp:placeTypePreferred ?type ;
+    skosxl:altLabel ?altLabel .
+    #skosxl:prefLabel|skosxl:altLabel ?altLabel .
+
+  ?altLabel gvp:term ?termLabel .
+
+  ?type gvp:prefLabelGVP ?typeLabel .
+  ?typeLabel gvp:term ?typeTerm .
+
+  OPTIONAL { ?altLabel rdfs:comment ?termComment . }
+  OPTIONAL { ?altLabel gvp:estStart ?termEstStart . }
+  OPTIONAL { ?altLabel gvp:estEnd ?termEstEnd . }
+  OPTIONAL { ?altLabel dc:identifier ?termIdentifier . }
+}
