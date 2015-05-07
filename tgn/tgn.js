@@ -16,15 +16,15 @@ var sparqlFiles = [
 ];
 
 var types = {
-  'nations': 'hg:Country',
-  'area': 'hg:Area',
-  'canals': 'hg:Water',
-  'channels': 'hg:Water',
+  nations: 'hg:Country',
+  area: 'hg:Area',
+  canals: 'hg:Water',
+  channels: 'hg:Water',
   'general regions': 'hg:Region',
   'inhabited places': 'hg:Place',
-  'provinces': 'hg:Province',
+  provinces: 'hg:Province',
   'second level subdivisions': 'hg:Region',
-  'neighborhoods': 'hg:Neighbourhood'
+  neighborhoods: 'hg:Neighbourhood'
 };
 
 var sparqlEndpoint = 'http://vocab.getty.edu/sparql.rdf';
@@ -49,7 +49,9 @@ exports.download = function(config, callback) {
     function(err) {
       callback(err);
     });
-  }, function(err) {
+  },
+
+  function(err) {
     callback(err);
   });
 };
@@ -86,20 +88,21 @@ exports.convert = function(config, callback) {
     callback(err);
   });
 
-
   function getElementTagValue(element, tag) {
-    if (element[tag] && element[tag].length > 0 && element[tag][0]['_']) {
-      return element[tag][0]['_'];
+    if (element[tag] && element[tag].length > 0 && element[tag][0]._) {
+      return element[tag][0]._;
     } else if (element[tag] && element[tag].length > 0) {
       return element[tag][0];
     }
+
     return null;
   }
 
   function getElementTagAttribute(element, tag, attribute) {
-    if (element[tag] && element[tag].length > 0 && element[tag][0]['$'] && element[tag][0]['$'][attribute]) {
-      return element[tag][0]['$'][attribute];
+    if (element[tag] && element[tag].length > 0 && element[tag][0].$ && element[tag][0].$[attribute]) {
+      return element[tag][0].$[attribute];
     }
+
     return null;
   }
 
@@ -126,7 +129,7 @@ exports.convert = function(config, callback) {
       var lat = getElementTagValue(element, 'wgs:lat');
       if (long && lat) {
         pit.geometry = {
-          type: "Point",
+          type: 'Point',
           coordinates: [
             parseFloat(long),
             parseFloat(lat)
@@ -147,6 +150,7 @@ exports.convert = function(config, callback) {
       if (estStart) {
         pit.hasBeginning = estStart + '-01-01';
       }
+
       if (estEnd) {
         pit.hasEnd = estEnd + '-12-31';
       }
@@ -202,4 +206,4 @@ exports.convert = function(config, callback) {
 exports.done = function(config, callback) {
   pitsAndRelations.close();
   callback();
-}
+};

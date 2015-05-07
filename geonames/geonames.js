@@ -39,11 +39,11 @@ var columns = [
   'modificationDate'
 ];
 var types = {
-  'PCLI': 'hg:Country',
-  'ADM1': 'hg:Province',
-  'ADM2': 'hg:Municipality',
-  'PPL': 'hg:Place',
-  'CNL': 'hg:Water'
+  PCLI: 'hg:Country',
+  ADM1: 'hg:Province',
+  ADM2: 'hg:Municipality',
+  PPL: 'hg:Place',
+  CNL: 'hg:Water'
 };
 
 exports.download = function(config, callback) {
@@ -135,9 +135,11 @@ function getRelations(adminCodes, obj) {
         }
       ];
     }
-  } else if (obj.countryCode === 'BE') {
-    // TODO: Belgian hierarchy!
   }
+
+  // else if (obj.countryCode === 'BE') {
+  //   // TODO: Belgian hierarchy!
+  // }
   return relations;
 }
 
@@ -160,7 +162,7 @@ exports.convert = function(config, callback) {
                 quote: '\0',
                 columns: columns
               }))
-              .pipe(es.map(function (row, callback) {
+              .pipe(es.map(function(row, callback) {
                 var type = types[row.featureCode];
                 if (type) {
                   var emit = [];
@@ -170,7 +172,7 @@ exports.convert = function(config, callback) {
                     name: row.name,
                     type: type,
                     geometry: {
-                    type: 'Point',
+                      type: 'Point',
                       coordinates: [
                         parseFloat(row.longitude),
                         parseFloat(row.latitude)
@@ -187,7 +189,7 @@ exports.convert = function(config, callback) {
                       admin4Code: row.admin4Code
                     },
                     uri: 'http://sws.geonames.org/' + row.geonameid
-                  }
+                  };
 
                   emit.push({
                     type: 'pits',
