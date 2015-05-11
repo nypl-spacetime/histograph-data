@@ -110,7 +110,7 @@ function getRelations(adminCodes, obj) {
         {
           from: obj.geonameid,
           to: 2750405,
-          label: 'hg:within'
+          label: 'hg:liesIn'
         }
       ];
     } else if (obj.featureCode === 'ADM2' && obj.admin1Code) {
@@ -119,7 +119,7 @@ function getRelations(adminCodes, obj) {
         {
           from: obj.geonameid,
           to: adminCodes.admin1[obj.countryCode + '.' + obj.admin1Code].geonameid,
-          label: 'hg:within'
+          label: 'hg:liesIn'
         }
       ];
     } else if (obj.featureCode === 'PPL' && obj.admin1Code && obj.admin2Code) {
@@ -128,7 +128,7 @@ function getRelations(adminCodes, obj) {
         {
           from: obj.geonameid,
           to: adminCodes.admin2[obj.countryCode + '.' + obj.admin1Code + '.' + obj.admin2Code].geonameid,
-          label: 'hg:within'
+          label: 'hg:liesIn'
         }
       ];
     }

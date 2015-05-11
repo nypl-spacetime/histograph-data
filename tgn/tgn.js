@@ -166,13 +166,13 @@ exports.convert = function(config, callback) {
       var broaderPreferred = getElementTagAttribute(element, 'gvp:broaderPreferred', 'rdf:resource');
       if (broaderPreferred) {
         // This implies that current PIT lies in broaderPreferred
-        // Add hg:within relation
+        // Add hg:liesIn relation
         emit.push({
           type: 'relations',
           obj: {
             from: id,
             to: broaderPreferred,
-            label: 'hg:within'
+            label: 'hg:liesIn'
           }
         });
       }
