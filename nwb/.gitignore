@@ -1,0 +1,10 @@
+*.zip
+*.shp
+*.shp.xml
+*.shx
+*.sbn
+*.sbx
+*.dbf
+*.prj
+*.ndjson
+
