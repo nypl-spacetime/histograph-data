@@ -123,7 +123,7 @@ function getRelations(adminCodes, obj) {
           label: 'hg:liesIn'
         }
       ];
-    } else if (obj.featureCode === 'PPL' && obj.admin1Code && obj.admin2Code) {
+    } else if (obj.featureCode.indexOf('PPL') === 0 && obj.admin1Code && obj.admin2Code) {
       // Place
       relations = [
         {
@@ -166,7 +166,14 @@ exports.convert = function(config, callback) {
                 columns: columns
               }))
               .pipe(es.map(function(row, callback) {
-                var type = types[row.featureCode];
+                var type;
+                var featureCode = row.featureCode;
+
+                while (featureCode.length > 0 && !type) {
+                  type = types[featureCode];
+                  featureCode = featureCode.slice(0, - 1);
+                }
+
                 if (type) {
                   var emit = [];
 
