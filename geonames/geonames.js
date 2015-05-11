@@ -11,6 +11,7 @@ var pitsAndRelations;
 
 // GeoNames configuration
 var baseUrl = 'http://download.geonames.org/export/dump/';
+var baseUri = 'http://sws.geonames.org/';
 var adminCodesFilenames = [
   'admin2Codes.txt',
   'admin1CodesASCII.txt'
@@ -190,7 +191,7 @@ exports.convert = function(config, callback) {
                       admin3Code: row.admin3Code,
                       admin4Code: row.admin4Code
                     },
-                    uri: 'http://sws.geonames.org/' + row.geonameid
+                    uri: baseUri + row.geonameid
                   };
 
                   emit.push({
