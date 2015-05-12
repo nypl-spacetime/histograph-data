@@ -11,7 +11,7 @@ SELECT DISTINCT ON (vbo.identificatie)
   openbareruimtenaam,
   huisnummer,
   huisletter,
-  huisnummertoevoeging
+  huisnummertoevoeging,
   postcode,
   opr.identificatie AS openbareruimte,
   ST_AsGeoJSON(ST_Transform(ST_Force_2d(geopunt), 4326)) AS geometry
