@@ -5,189 +5,135 @@ var QueryStream = require('pg-query-stream');
 var Cursor = require('pg-cursor')
 var async = require('async');
 var es = require('event-stream');
-
-var pitsAndRelations;
+var _ = require('highland');
 
 // adres > openbareruimte
 // openbareruimte > woonplaats
 // adres > pand
 
-var queries = [
-  {
-    name: 'pand',
-    rowToPitsAndRelations: function(row) {
-      var pit = {
-        id: parseInt(row.id),
-        type: 'hg:Building',
-        data: {
-          bouwjaar: parseInt(row.bouwjaar)
-        },
-        geometry: JSON.parse(row.geometry)
-      };
+var queries = require('./queries');
 
-      return [
-        {
-          type: 'pits',
-          obj: pit
-        }
-      ];
-    }
-  },
+function runAllQueries(client)
+{
+  // returns a stream of NDJSON data
+  var bagStream = function(query) {
 
-  {
-    name: 'openbareruimte',
-    rowToPitsAndRelations: function(row) {
-      var pit = {
-        id: parseInt(row.id),
-        name: row.name,
-        type: 'hg:Street',
-        data: {
-          woonplaatscode: parseInt(row.woonplaatscode)
-        }
-      };
+    // stream of SQL query results
+    var fn = path.join(__dirname, query.name + '.sql');
+    var sql = fs.readFileSync(fn, 'utf8');
+    var queryStream = client.query(new QueryStream(sql));
 
-      var relation = {
-        from: parseInt(row.id),
-        to: parseInt(row.woonplaatscode),
-        label: 'hg:liesIn'
-      };
+    return _(queryStream)
+      .map(query.rowToPitsAndRelations);
+  };
 
-      return [
-        {
-          type: 'pits',
-          obj: pit
-        },
-        {
-          type: 'relations',
-          obj: relation
-        }
-      ];
-    }
-  },
+  var s = _(queries)
+    .map(bagStream)
+    .merge()
+    .flatten();
 
-  {
-    name: 'woonplaats',
-    rowToPitsAndRelations: function(row) {
-      var pit = {
-        id: parseInt(row.id),
-        name: row.name,
-        type: 'hg:Place',
-        geometry: JSON.parse(row.geometry),
-        data: {
-          gemeentecode: parseInt(row.gemeentecode)
-        }
-      };
-
-      return [
-        {
-          type: 'pits',
-          obj: pit
-        }
-      ];
-    }
-  },
-
-  {
-    name: 'verblijfsobject',
-    rowToPitsAndRelations: function(row) {
-      var pit = {
-        id: parseInt(row.id),
-        name: [row.openbareruimtenaam, row.huisnummer, row.huisletter, row.huisnummertoevoeging].filter(function(p) {
-            return p;
-          }).join(' '),
-        type: 'hg:Address',
-        geometry: JSON.parse(row.geometry),
-        data: {
-          openbareruimte: parseInt(row.openbareruimte),
-          postcode: row.postcode
-        }
-      };
-
-      var relation = {
-        from: parseInt(row.id),
-        to: parseInt(row.openbareruimte),
-        label: 'hg:liesIn'
-      };
-
-      var result = [
-        {
-          type: 'pits',
-          obj: pit
-        },
-        {
-          type: 'relations',
-          obj: relation
-        }
-      ];
-
-      if (row.pand_ids) {
-        row.pand_ids.split(',').forEach(function(pandId) {
-          result.push({
-            type: 'relations',
-            obj: {
-              from: parseInt(row.id),
-              to: parseInt(pandId),
-              label: 'hg:liesIn'
-            }
-          });
-        });
-      }
-
-      return result;
-    }
-  }
-];
-
-function executeQueries(client, callback) {
-  async.eachSeries(queries, function(query, callback) {
-    fs.readFile(path.join(__dirname, query.name + '.sql'), 'utf8', function (err, sql) {
-      if (err) {
-        callback(err);
-      } else {
-
-        var queryStream = new QueryStream(sql)
-        client.query(queryStream)
-          .on('end', function() {
-            callback();
-          })
-          .pipe(es.map(function (row, callback) {
-            var emit = query.rowToPitsAndRelations(row);
-
-            async.eachSeries(emit, function(item, callback) {
-              pitsAndRelations.emit(item.type, item.obj, function(err) {
-                callback(err);
-              });
-            },
-
-            function(err) {
-              callback(err);
-            });
-
-          }));
-      }
-    });
-  }, function(err) {
-    callback(err);
-  });
-}
-
-exports.convert = function(config, callback) {
-  pitsAndRelations = require('../pits-and-relations')({
-    source: 'bag',
-    truncate: true
-  });
-
-  pg.connect(config.db, function(err, client, done) {
-    if (err) {
-      callback(err)
-    } else {
-      executeQueries(client, function(err) {
-        client.end();
-        callback(err);
-      });
-    }
-  });
+  return s;
 };
 
 
+var ndjsonStream = require('../ndjson-stream');
 
+// filter out events of a certain type and stream as NDJSON to file
+function dest(type)
+{
+  var conf = {
+    source: 'bag',
+    truncate: true
+  };
+
+  return _.pipeline(
+    _.where({type: type}),
+    ndjsonStream(type, conf)
+  );
+};
+
+exports.convert = function(config, callback) {
+
+  pg.connect(config.db, function(err, client, done) {
+
+    // fail on error
+    if (err)
+      return callback(err);
+
+    // all good, start processing all queries
+    var s = runAllQueries(client);
+
+    var conf = {
+      source: 'bag',
+      truncate: true
+    };
+
+    var pitsFile = ndjsonStream('pits', conf);
+    var relsFile = ndjsonStream('rels', conf);
+
+    s.fork().where({type: 'pits'}).pipe(pitsFile);
+    s.fork().where({type: 'rels'}).pipe(relsFile);
+
+    // s.fork().pipe(dest('pits'));
+    // s.fork().pipe(dest('rels'));
+
+    // disconnect from PostgreSQL and call callback when done
+    s.fork().done(function(){
+      client.end();
+      callback();
+    })
+
+  });
+}
+
+// exports.convert = function(config, callback) {
+//   pitsAndRelations = require('../pits-and-relations')({
+//     source: 'bag',
+//     truncate: true
+//   });
+//
+//   pg.connect(config.db, function(err, client, done) {
+//     if (err) {
+//       callback(err)
+//     } else {
+//       executeQueries(client, function(err) {
+//         client.end();
+//         callback(err);
+//       });
+//     }
+//   });
+// };
+
+
+// function executeQueries(client, callback) {
+//   async.eachSeries(queries, function(query, callback) {
+//     fs.readFile(, 'utf8', function (err, sql) {
+//       if (err) {
+//         callback(err);
+//       } else {
+//
+//         var queryStream = new QueryStream(sql)
+//         client.query(queryStream)
+//           .on('end', function() {
+//             callback();
+//           })
+//           .pipe(es.map(function (row, callback) {
+//             var emit = query.rowToPitsAndRelations(row);
+//
+//             async.eachSeries(emit, function(item, callback) {
+//               pitsAndRelations.emit(item.type, item.obj, function(err) {
+//                 callback(err);
+//               });
+//             },
+//
+//             function(err) {
+//               callback(err);
+//             });
+//
+//           }));
+//       }
+//     });
+//   }, function(err) {
+//     callback(err);
+//   });
+// }
