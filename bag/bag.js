@@ -4,17 +4,17 @@ var path = require('path');
 var QueryStream = require('pg-query-stream');
 var Cursor = require('pg-cursor')
 var async = require('async');
+var ndjson = require('ndjson');
 var es = require('event-stream');
 var _ = require('highland');
+var ndjsonStream = require('../ndjson-stream');
+var queries = require('./queries');
 
 // adres > openbareruimte
 // openbareruimte > woonplaats
 // adres > pand
 
-var queries = require('./queries');
-
-function runAllQueries(client)
-{
+function runAllQueries(client) {
   // returns a stream of NDJSON data
   var bagStream = function(query) {
 
@@ -22,7 +22,6 @@ function runAllQueries(client)
     var fn = path.join(__dirname, query.name + '.sql');
     var sql = fs.readFileSync(fn, 'utf8');
     var queryStream = client.query(new QueryStream(sql));
-
     return _(queryStream)
       .map(query.rowToPitsAndRelations);
   };
@@ -35,12 +34,8 @@ function runAllQueries(client)
   return s;
 };
 
-
-var ndjsonStream = require('../ndjson-stream');
-
 // filter out events of a certain type and stream as NDJSON to file
-function dest(type)
-{
+function dest(type) {
   var conf = {
     source: 'bag',
     truncate: true
@@ -68,14 +63,28 @@ exports.convert = function(config, callback) {
       truncate: true
     };
 
-    var pitsFile = ndjsonStream('pits', conf);
-    var relsFile = ndjsonStream('rels', conf);
+    function dest(type) {
+      return _.pipeline(
+        _.where({type: type}),
+        _.map(function(obj){
+          return JSON.stringify(obj) + '\n';
+        })
+      );
+    }
 
-    s.fork().where({type: 'pits'}).pipe(pitsFile);
-    s.fork().where({type: 'rels'}).pipe(relsFile);
+    // s.fork().pipe(dest('pits')).pipe(process.stdout);
+    // s.fork().pipe(dest('relations')).pipe(process.stdout);
 
-    // s.fork().pipe(dest('pits'));
-    // s.fork().pipe(dest('rels'));
+    var file_opts = {
+      encoding: 'utf8',
+      highWaterMark: Math.pow(2, 20)
+    }
+
+    s.fork()
+      .pipe(dest('pits'))
+      .pipe(fs.createWriteStream(path.join(conf.source, conf.source + '.' + 'pits' + '.ndjson'), file_opts));
+
+    // s.fork().pipe(dest('relations')).pipe(fs.createWriteStream(path.join(conf.source, conf.source + '.' + 'relations' + '.ndjson'), 'utf8'));
 
     // disconnect from PostgreSQL and call callback when done
     s.fork().done(function(){
