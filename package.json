@@ -29,7 +29,6 @@
     "pg-query-stream": "^0.7.0",
     "proj4": "^2.3.6",
     "rbush": "^1.4.0",
-    "reproject": "^0.1.1",
     "request": "^2.55.0",
     "shapefile": "^0.3.0",
     "sparql-client": "^0.2.0",
