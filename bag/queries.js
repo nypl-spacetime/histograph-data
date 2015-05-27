@@ -1,26 +1,5 @@
 module.exports = [
   {
-    name: 'pand',
-    rowToPitsAndRelations: function(row) {
-      var pit = {
-        id: parseInt(row.id),
-        type: 'hg:Building',
-        data: {
-          bouwjaar: parseInt(row.bouwjaar)
-        },
-        geometry: JSON.parse(row.geometry)
-      };
-
-      return [
-        {
-          type: 'pits',
-          obj: pit
-        }
-      ];
-    }
-  },
-
-  {
     name: 'openbareruimte',
     rowToPitsAndRelations: function(row) {
       var pit = {
@@ -62,6 +41,27 @@ module.exports = [
         data: {
           gemeentecode: parseInt(row.gemeentecode)
         }
+      };
+
+      return [
+        {
+          type: 'pits',
+          obj: pit
+        }
+      ];
+    }
+  },
+
+  {
+    name: 'pand',
+    rowToPitsAndRelations: function(row) {
+      var pit = {
+        id: parseInt(row.id),
+        // TODO: buildings have no name. make sure core accepts PITs without name
+        name: row.id,
+        type: 'hg:Building',
+        hasBeginning: row.bouwjaar + '-01-01',
+        geometry: JSON.parse(row.geometry)
       };
 
       return [
