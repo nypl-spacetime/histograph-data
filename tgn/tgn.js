@@ -210,5 +210,6 @@ exports.done = function(config, callback) {
   if (pitsAndRelations) {
     pitsAndRelations.close();
   }
+
   callback();
 };

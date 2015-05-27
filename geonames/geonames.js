@@ -171,7 +171,7 @@ exports.convert = function(config, callback) {
 
                 while (featureCode.length > 0 && !type) {
                   type = types[featureCode];
-                  featureCode = featureCode.slice(0, - 1);
+                  featureCode = featureCode.slice(0, -1);
                 }
 
                 if (type) {
@@ -247,5 +247,6 @@ exports.done = function(config, callback) {
   if (pitsAndRelations) {
     pitsAndRelations.close();
   }
+
   callback();
 };

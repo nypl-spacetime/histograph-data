@@ -9,6 +9,7 @@ var queries = require('./queries');
 var pitsAndRelations;
 
 var woonplaats = null;
+
 // Set woonplaats to a specific BAG woonplaats (name + code)
 // to only process one single woonplaats
 // Examples:
@@ -27,6 +28,7 @@ function runAllQueries(client, callback) {
     if (woonplaats) {
       filename += '.woonplaats';
     }
+
     filename += '.sql';
 
     var sql = fs.readFileSync(path.join(__dirname, filename), 'utf8');
@@ -50,17 +52,17 @@ function runQuery(client, sql, name, rowToPitsAndRelations, callback) {
   var count = 0;
 
   var finished = false;
-  async.whilst(function () {
+  async.whilst(function() {
     return !finished;
   },
 
-  function (callback) {
+  function(callback) {
 
     cursor.read(cursorSize, function(err, rows) {
-      if(err) {
+      if (err) {
         callback(err);
       } else {
-        if(!rows.length) {
+        if (!rows.length) {
           finished = true;
           callback();
         } else {
@@ -78,8 +80,10 @@ function runQuery(client, sql, name, rowToPitsAndRelations, callback) {
               callback(err);
             });
           },
+
           function(err) {
             count += 1;
+
             // TODO: create logging function in index.js
             // TODO: use logger from index.js
             console.log(util.format('%d: processed %d rows of %s (%d done)...', count, cursorSize, name, cursorSize * count));
@@ -90,7 +94,7 @@ function runQuery(client, sql, name, rowToPitsAndRelations, callback) {
     });
   },
 
-  function (err) {
+  function(err) {
     callback(err);
   });
 }

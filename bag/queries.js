@@ -57,8 +57,6 @@ module.exports = [
     rowToPitsAndRelations: function(row) {
       var pit = {
         id: parseInt(row.id),
-        // TODO: buildings have no name. make sure core accepts PITs without name
-        name: row.id,
         type: 'hg:Building',
         hasBeginning: row.bouwjaar + '-01-01',
         geometry: JSON.parse(row.geometry)

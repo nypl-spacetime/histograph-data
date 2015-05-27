@@ -46,6 +46,7 @@ function extractRoadSegments(config, zipfile, callback) {
       callback(err);
     });
   },
+
   function(err) {
     callback(err);
   });
@@ -53,17 +54,17 @@ function extractRoadSegments(config, zipfile, callback) {
 
 function storeRecord(record, callback) {
   var dbKey = record.properties.WPSNAAMNEN + '-' + record.properties.STT_NAAM;
-  db.get(dbKey, function (err, value) {
+  db.get(dbKey, function(err, value) {
     if (err) {
       value = {};
       value[record.properties.WVK_ID] = record;
 
-      db.put(dbKey, value, function (err) {
+      db.put(dbKey, value, function(err) {
         callback(err);
       });
     } else {
       value[record.properties.WVK_ID] = record;
-      db.put(dbKey, value, function (err) {
+      db.put(dbKey, value, function(err) {
         callback(err);
       });
     }
@@ -124,7 +125,7 @@ exports.convert = function(config, callback) {
   });
 
   db.createReadStream()
-    .pipe(es.map(function (data, callback) {
+    .pipe(es.map(function(data, callback) {
       var wvkIds = Object.keys(data.value);
 
       var id = urlify(data.key);
@@ -136,6 +137,7 @@ exports.convert = function(config, callback) {
         var projectedCoordinates = geometry.coordinates.map(function(coordinate) {
           return proj4(rd, wgs84, coordinate);
         });
+
         coordinates.push(projectedCoordinates);
       });
 
@@ -174,17 +176,18 @@ exports.convert = function(config, callback) {
           callback(err);
         });
       },
+
       function(err) {
         callback(err);
       });
     }))
-    .on('error', function (err) {
+    .on('error', function(err) {
       callback(err);
     })
-    .on('close', function () {
+    .on('close', function() {
       callback();
     })
-    .on('end', function () {
+    .on('end', function() {
       callback();
     });
 };
@@ -193,5 +196,6 @@ exports.done = function(config, callback) {
   if (pitsAndRelations) {
     pitsAndRelations.close();
   }
+
   callback();
 };
