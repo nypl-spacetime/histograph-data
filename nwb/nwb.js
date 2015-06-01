@@ -129,7 +129,7 @@ exports.convert = function(config, callback) {
       var wvkIds = Object.keys(data.value);
 
       var id = urlify(data.key);
-      var name = data.value[wvkIds[0]].properties.STT_NAAM;
+      var properties = data.value[wvkIds[0]].properties;
 
       var coordinates = [];
       wvkIds.forEach(function(wvkId) {
@@ -148,9 +148,12 @@ exports.convert = function(config, callback) {
 
       var pit = {
         id: id,
-        name: name,
+        name: properties.STT_NAAM,
         type: 'hg:Street',
         data: {
+          wpsnaamnen: properties.WPSNAAMNEN,
+          gme_id: properties.GME_ID,
+          gme_naam: properties.GME_NAAM,
           wvk_ids: wvkIds.map(function(wvkId) { return parseInt(wvkId); })
         },
         geometry: geometry
