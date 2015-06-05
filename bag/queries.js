@@ -1,3 +1,12 @@
+var urlify = require('urlify').create({
+  addEToUmlauts: true,
+  szToSs: true,
+  toLower: true,
+  spaces: '-',
+  nonPrintable: '-',
+  trim: true
+});
+
 module.exports = [
   {
     name: 'openbareruimte',
@@ -7,14 +16,23 @@ module.exports = [
         name: row.name,
         type: 'hg:Street',
         data: {
-          woonplaatscode: parseInt(row.woonplaatscode)
+          woonplaatscode: parseInt(row.woonplaatscode),
+          woonplaatsnaam: row.woonplaatsnaam
         }
       };
 
-      var relation = {
+      var woonplaatsRelation = {
         from: parseInt(row.id),
         to: parseInt(row.woonplaatscode),
         label: 'hg:liesIn'
+      };
+
+      var nwbId = 'nwb/' + urlify(row.woonplaatsnaam + '-' + row.name);
+
+      var nwbRelation = {
+        from: parseInt(row.id),
+        to: nwbId,
+        label: 'hg:sameHgConcept'
       };
 
       return [
@@ -24,7 +42,11 @@ module.exports = [
         },
         {
           type: 'relations',
-          obj: relation
+          obj: woonplaatsRelation
+        },
+        {
+          type: 'relations',
+          obj: nwbRelation
         }
       ];
     }
@@ -61,6 +83,26 @@ module.exports = [
         hasBeginning: row.bouwjaar + '-01-01',
         geometry: JSON.parse(row.geometry)
       };
+
+      var result = [
+        {
+          type: 'pits',
+          obj: pit
+        }
+      ];
+
+      if (row.openbareruimtes) {
+        row.openbareruimtes.split(',').forEach(function(openbareruimte) {
+          result.push({
+            type: 'relations',
+            obj: {
+              from: parseInt(row.id),
+              to: parseInt(openbareruimte),
+              label: 'hg:liesIn'
+            }
+          });
+        });
+      }
 
       return [
         {

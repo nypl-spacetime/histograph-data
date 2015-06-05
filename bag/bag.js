@@ -13,14 +13,19 @@ var woonplaats = null;
 // Set woonplaats to a specific BAG woonplaats (name + code)
 // to only process one single woonplaats
 // Examples:
-//   var woonplaats = {
-//    name: 'de-rijp',
-//    code: '3553'
-//  };
-//  var woonplaats = {
-//    name: 'leiden',
-//    code: '2088'
-//  };
+var woonplaats = {
+  name: 'de-rijp',
+  code: '3553'
+};
+
+// var woonplaats = {
+//   name: 'leiden',
+//   code: '2088'
+// };
+// var woonplaats = {
+//   name: 'bussum',
+//   code: '1331'
+// };
 
 function runAllQueries(client, callback) {
   async.eachSeries(queries, function(query, callback) {

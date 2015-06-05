@@ -1,7 +1,8 @@
 SELECT
   opr.identificatie AS id,
   openbareruimtenaam AS name,
-  gerelateerdewoonplaats AS woonplaatscode
+  gerelateerdewoonplaats::int AS woonplaatscode,
+  wp.woonplaatsnaam::text
 FROM
   openbareruimteactueelbestaand opr
 JOIN
