@@ -2,13 +2,11 @@ var path = require('path');
 var async = require('async');
 var config = require(process.env.HISTOGRAPH_CONFIG);
 var parseArgs = require('minimist');
-var inferencing = require('./inferencing');
 require('colors');
 
 var steps = [
   'download',
   'convert',
-  'infer',
   'done'
 ];
 
@@ -22,11 +20,6 @@ if (argv._.length > 0) {
 
 async.eachSeries(sources, function(source, callback) {
   var importer = require('./' + path.join(source, source));
-
-  // Always add infer step to importer
-  importer.infer = function(config, callback) {
-    inferencing(source, callback);
-  };
 
   console.log('Processing source ' + source.inverse + ':');
   async.eachSeries(steps, function(step, callback) {
