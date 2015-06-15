@@ -124,14 +124,20 @@ function getRelations(adminCodes, obj) {
         }
       ];
     } else if (obj.featureCode.indexOf('PPL') === 0 && obj.admin1Code && obj.admin2Code) {
+      var parentObj = adminCodes.admin2[obj.countryCode + '.' + obj.admin1Code + '.' + obj.admin2Code];
+
       // Place
-      relations = [
-        {
-          from: obj.geonameid,
-          to: adminCodes.admin2[obj.countryCode + '.' + obj.admin1Code + '.' + obj.admin2Code].geonameid,
-          label: 'hg:liesIn'
-        }
-      ];
+      if (parentObj && parentObj.geonameid) {
+        relations = [
+          {
+            from: obj.geonameid,
+            to: parentObj.geonameid,
+            label: 'hg:liesIn'
+          }
+        ];
+      } else {
+        relations = [];
+      }
     }
   }
 
