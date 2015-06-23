@@ -1,1 +1,11 @@
-{"id":"cshapes","title":"cshapes","description":"Cshapes shapes extended with relations and some colonies, ids created from id+start year.","license":"cc-by-nc-sa 4.0","author":"CShapes: Nils B. Weidmann, Kristian Skrede Gleditsch\r\nEdited by: Hans Fast","website":"http://nils.weidmann.ws/projects/cshapes","edits":"Added British New Guinea, British Raj, and some relations","editor":"Hans Fast","sourceCreationDate":"2015-06-23"}
+{
+  "author": "CShapes: Nils B. Weidmann, Kristian Skrede Gleditsch\r\nEdited by: Hans Fast",
+  "description": "Cshapes shapes extended with relations and some colonies, ids created from id+start year.",
+  "editor": "Hans Fast",
+  "edits": "Added British New Guinea, British Raj, and some relations",
+  "id": "cshapes",
+  "license": "cc-by-nc-sa 4.0",
+  "sourceCreationDate": "2015-06-23",
+  "title": "cshapes",
+  "website": "http://nils.weidmann.ws/projects/cshapes"
+}
