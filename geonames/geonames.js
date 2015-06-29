@@ -109,18 +109,18 @@ function getRelations(adminCodes, obj) {
       // Province
       relations = [
         {
-          from: obj.geonameid,
-          to: 2750405,
-          label: 'hg:liesIn'
+          from: baseUri + obj.geonameid,
+          to: baseUri + 2750405,
+          type: 'hg:liesIn'
         }
       ];
     } else if (obj.featureCode === 'ADM2' && obj.admin1Code) {
       // Municipality
       relations = [
         {
-          from: obj.geonameid,
-          to: adminCodes.admin1[obj.countryCode + '.' + obj.admin1Code].geonameid,
-          label: 'hg:liesIn'
+          from: baseUri + obj.geonameid,
+          to: baseUri + adminCodes.admin1[obj.countryCode + '.' + obj.admin1Code].geonameid,
+          type: 'hg:liesIn'
         }
       ];
     } else if (obj.featureCode.indexOf('PPL') === 0 && obj.admin1Code && obj.admin2Code) {
@@ -130,9 +130,9 @@ function getRelations(adminCodes, obj) {
       if (parentObj && parentObj.geonameid) {
         relations = [
           {
-            from: obj.geonameid,
-            to: parentObj.geonameid,
-            label: 'hg:liesIn'
+            from: baseUri + obj.geonameid,
+            to: baseUri + parentObj.geonameid,
+            type: 'hg:liesIn'
           }
         ];
       } else {
@@ -184,7 +184,7 @@ exports.convert = function(config, callback) {
                   var emit = [];
 
                   var pit = {
-                    id: row.geonameid,
+                    uri: baseUri + row.geonameid,
                     name: row.name,
                     type: type,
                     geometry: {
@@ -203,8 +203,7 @@ exports.convert = function(config, callback) {
                       admin2Code: row.admin2Code,
                       admin3Code: row.admin3Code,
                       admin4Code: row.admin4Code
-                    },
-                    uri: baseUri + row.geonameid
+                    }
                   };
 
                   emit.push({

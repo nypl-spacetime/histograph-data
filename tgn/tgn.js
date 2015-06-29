@@ -122,10 +122,9 @@ exports.convert = function(config, callback) {
       var id = uri.replace('http://vocab.getty.edu/tgn/', '').replace('/', '-');
 
       var pit = {
-        id: id,
+        uri: uri,
         name: name,
-        type: type,
-        uri: uri
+        type: type
       };
 
       var long = getElementTagValue(element, 'wgs:long');
@@ -172,7 +171,7 @@ exports.convert = function(config, callback) {
           obj: {
             from: id,
             to: broaderPreferred,
-            label: 'hg:liesIn'
+            type: 'hg:liesIn'
           }
         });
       }
@@ -186,7 +185,7 @@ exports.convert = function(config, callback) {
           obj: {
             from: uri,
             to: subject,
-            label: 'hg:sameHgConcept'
+            type: 'hg:sameHgConcept'
           }
         });
       }
