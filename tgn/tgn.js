@@ -119,7 +119,6 @@ exports.convert = function(config, callback) {
 
       var name = getElementTagValue(element, 'gvp:term');
       var uri = getElementTagAttribute(element, 'dct:source', 'rdf:resource');
-      var id = uri.replace('http://vocab.getty.edu/tgn/', '').replace('/', '-');
 
       var pit = {
         uri: uri,
@@ -169,7 +168,7 @@ exports.convert = function(config, callback) {
         emit.push({
           type: 'relations',
           obj: {
-            from: id,
+            from: uri,
             to: broaderPreferred,
             type: 'hg:liesIn'
           }
