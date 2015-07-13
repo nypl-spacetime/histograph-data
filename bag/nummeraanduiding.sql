@@ -1,5 +1,5 @@
-SELECT DISTINCT ON (vbo.identificatie)
-  vbo.identificatie::bigint AS id,
+SELECT DISTINCT ON (na.identificatie)
+  na.identificatie::bigint AS id,
   (
   	SELECT
   	array_to_string(array_agg(p.identificatie::bigint), ',') AS pand_ids
@@ -29,5 +29,3 @@ JOIN
   openbareruimteactueelbestaand opr
 ON
   na.gerelateerdeopenbareruimte = opr.identificatie
-WHERE
-  opr.gerelateerdewoonplaats = {woonplaatscode}

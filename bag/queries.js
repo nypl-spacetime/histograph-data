@@ -24,7 +24,7 @@ module.exports = [
       var woonplaatsRelation = {
         from: parseInt(row.id),
         to: parseInt(row.woonplaatscode),
-        label: 'hg:liesIn'
+        type: 'hg:liesIn'
       };
 
       var nwbId = 'nwb/' + urlify(row.woonplaatsnaam + '-' + row.name);
@@ -32,7 +32,7 @@ module.exports = [
       var nwbRelation = {
         from: parseInt(row.id),
         to: nwbId,
-        label: 'hg:sameHgConcept'
+        type: 'hg:sameHgConcept'
       };
 
       return [
@@ -98,7 +98,7 @@ module.exports = [
             obj: {
               from: parseInt(row.id),
               to: parseInt(openbareruimte),
-              label: 'hg:liesIn'
+              type: 'hg:liesIn'
             }
           });
         });
@@ -114,7 +114,7 @@ module.exports = [
   },
 
   {
-    name: 'verblijfsobject',
+    name: 'nummeraanduiding',
     rowToPitsAndRelations: function(row) {
       var pit = {
         id: parseInt(row.id),
@@ -132,7 +132,7 @@ module.exports = [
       var relation = {
         from: parseInt(row.id),
         to: parseInt(row.openbareruimte),
-        label: 'hg:liesIn'
+        type: 'hg:liesIn'
       };
 
       var result = [
@@ -153,7 +153,7 @@ module.exports = [
             obj: {
               from: parseInt(row.id),
               to: parseInt(pandId),
-              label: 'hg:liesIn'
+              type: 'hg:liesIn'
             }
           });
         });
