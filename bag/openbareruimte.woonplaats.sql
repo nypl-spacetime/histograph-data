@@ -6,6 +6,6 @@ SELECT
 FROM
   openbareruimteactueelbestaand opr
 JOIN
-  woonplaats wp ON opr.gerelateerdewoonplaats = wp.identificatie
+  woonplaatsactueelbestaand wp ON opr.gerelateerdewoonplaats = wp.identificatie
 WHERE
   wp.identificatie = {woonplaatscode}
