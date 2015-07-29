@@ -38,11 +38,11 @@ var columns = [
   'modificationDate'
 ];
 var types = {
-  PCLI: 'hg:Country',
-  ADM1: 'hg:Province',
-  ADM2: 'hg:Municipality',
-  PPL: 'hg:Place',
-  CNL: 'hg:Water'
+  PCLI: 'Country',
+  ADM1: 'Province',
+  ADM2: 'Municipality',
+  PPL: 'Place',
+  CNL: 'Water'
 };
 
 exports.download = function(config, callback) {
@@ -111,7 +111,7 @@ function getRelations(adminCodes, obj) {
         {
           from: baseUri + obj.geonameid,
           to: baseUri + 2750405,
-          type: 'hg:liesIn'
+          type: 'liesIn'
         }
       ];
     } else if (obj.featureCode === 'ADM2' && obj.admin1Code) {
@@ -120,7 +120,7 @@ function getRelations(adminCodes, obj) {
         {
           from: baseUri + obj.geonameid,
           to: baseUri + adminCodes.admin1[obj.countryCode + '.' + obj.admin1Code].geonameid,
-          type: 'hg:liesIn'
+          type: 'liesIn'
         }
       ];
     } else if (obj.featureCode.indexOf('PPL') === 0 && obj.admin1Code && obj.admin2Code) {
@@ -132,7 +132,7 @@ function getRelations(adminCodes, obj) {
           {
             from: baseUri + obj.geonameid,
             to: baseUri + parentObj.geonameid,
-            type: 'hg:liesIn'
+            type: 'liesIn'
           }
         ];
       } else {

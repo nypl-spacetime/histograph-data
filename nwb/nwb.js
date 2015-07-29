@@ -149,7 +149,7 @@ exports.convert = function(config, callback) {
       var pit = {
         id: id,
         name: properties.STT_NAAM,
-        type: 'hg:Street',
+        type: 'Street',
         data: {
           wpsnaamnen: properties.WPSNAAMNEN,
           gme_id: properties.GME_ID,

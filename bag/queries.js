@@ -14,7 +14,7 @@ module.exports = [
       var pit = {
         id: parseInt(row.id),
         name: row.name,
-        type: 'hg:Street',
+        type: 'Street',
         data: {
           woonplaatscode: parseInt(row.woonplaatscode),
           woonplaatsnaam: row.woonplaatsnaam
@@ -24,7 +24,7 @@ module.exports = [
       var woonplaatsRelation = {
         from: parseInt(row.id),
         to: parseInt(row.woonplaatscode),
-        type: 'hg:liesIn'
+        type: 'liesIn'
       };
 
       var nwbId = 'nwb/' + urlify(row.woonplaatsnaam + '-' + row.name);
@@ -32,7 +32,7 @@ module.exports = [
       var nwbRelation = {
         from: parseInt(row.id),
         to: nwbId,
-        type: 'hg:sameHgConcept'
+        type: 'sameHgConcept'
       };
 
       return [
@@ -58,7 +58,7 @@ module.exports = [
       var pit = {
         id: parseInt(row.id),
         name: row.name,
-        type: 'hg:Place',
+        type: 'Place',
         geometry: JSON.parse(row.geometry),
         data: {
           gemeentecode: parseInt(row.gemeentecode)
@@ -79,7 +79,7 @@ module.exports = [
     rowToPitsAndRelations: function(row) {
       var pit = {
         id: parseInt(row.id),
-        type: 'hg:Building',
+        type: 'Building',
         hasBeginning: row.bouwjaar + '-01-01',
         geometry: JSON.parse(row.geometry)
       };
@@ -98,7 +98,7 @@ module.exports = [
             obj: {
               from: parseInt(row.id),
               to: parseInt(openbareruimte),
-              type: 'hg:liesIn'
+              type: 'liesIn'
             }
           });
         });
@@ -121,7 +121,7 @@ module.exports = [
         name: [row.openbareruimtenaam, row.huisnummer, row.huisletter, row.huisnummertoevoeging].filter(function(p) {
             return p;
           }).join(' '),
-        type: 'hg:Address',
+        type: 'Address',
         geometry: JSON.parse(row.geometry),
         data: {
           openbareruimte: parseInt(row.openbareruimte),
@@ -132,7 +132,7 @@ module.exports = [
       var relation = {
         from: parseInt(row.id),
         to: parseInt(row.openbareruimte),
-        type: 'hg:liesIn'
+        type: 'liesIn'
       };
 
       var result = [
@@ -153,7 +153,7 @@ module.exports = [
             obj: {
               from: parseInt(row.id),
               to: parseInt(pandId),
-              type: 'hg:liesIn'
+              type: 'liesIn'
             }
           });
         });

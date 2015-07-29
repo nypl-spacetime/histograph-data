@@ -14,15 +14,15 @@ var sparqlFiles = [
 ];
 
 var types = {
-  nations: 'hg:Country',
-  area: 'hg:Area',
-  canals: 'hg:Water',
-  channels: 'hg:Water',
-  'general regions': 'hg:Region',
-  'inhabited places': 'hg:Place',
-  provinces: 'hg:Province',
-  'second level subdivisions': 'hg:Region',
-  neighborhoods: 'hg:Neighbourhood'
+  nations: 'Country',
+  area: 'Area',
+  canals: 'Water',
+  channels: 'Water',
+  'general regions': 'Region',
+  'inhabited places': 'Place',
+  provinces: 'Province',
+  'second level subdivisions': 'Region',
+  neighborhoods: 'Neighbourhood'
 };
 
 var sparqlEndpoint = 'http://vocab.getty.edu/sparql.rdf';
@@ -164,13 +164,13 @@ exports.convert = function(config, callback) {
       var broaderPreferred = getElementTagAttribute(element, 'gvp:broaderPreferred', 'rdf:resource');
       if (broaderPreferred) {
         // This implies that current PIT lies in broaderPreferred
-        // Add hg:liesIn relation
+        // Add liesIn relation
         emit.push({
           type: 'relations',
           obj: {
             from: uri,
             to: broaderPreferred,
-            type: 'hg:liesIn'
+            type: 'liesIn'
           }
         });
       }
@@ -178,13 +178,13 @@ exports.convert = function(config, callback) {
       var subject = getElementTagAttribute(element, 'rdf:subject', 'rdf:resource');
       if (subject) {
         // This implies that subject is an alternative name for current PIT
-        // Add hg:sameHgConcept relation
+        // Add sameHgConcept relation
         emit.push({
           type: 'relations',
           obj: {
             from: uri,
             to: subject,
-            type: 'hg:sameHgConcept'
+            type: 'sameHgConcept'
           }
         });
       }
