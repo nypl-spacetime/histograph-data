@@ -14,13 +14,11 @@
   "author": "Waag Society",
   "license": "GPL-3.0",
   "dependencies": {
-    "adm-zip": "^0.4.7",
     "async": "^0.9.0",
     "colors": "^1.1.0",
     "csv": "^0.4.2",
     "event-stream": "^3.3.1",
     "geojsonhint": "^1.0.0",
-    "highland": "^2.5.1",
     "is-my-json-valid": "^2.10.1",
     "level": "^0.19.1",
     "minimist": "^1.1.1",
@@ -28,12 +26,13 @@
     "pg": "^4.3.0",
     "pg-cursor": "^1.0.0",
     "proj4": "^2.3.6",
-    "rbush": "^1.4.0",
+    "ramda": "^0.17.1",
     "request": "^2.55.0",
     "shapefile": "^0.3.0",
     "sparql-client": "^0.2.0",
     "urlify": "^0.3.6",
-    "xml2js": "^0.4.8"
+    "xml2js": "^0.4.8",
+    "zipfile": "^0.5.7"
   },
   "jshintConfig": {
     "node": true,

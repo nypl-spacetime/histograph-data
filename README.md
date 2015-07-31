@@ -16,13 +16,14 @@ Or you can select the scripts you want to run yourself:
 
 Alternatively, you can select the processing steps you want to run:
 
-    $ node index.js --steps=convert,infer tgn geonames
+    $ node index.js --steps=convert tgn geonames
 
 Valid processing steps:
 
-- `download`
-- `convert`
-- `infer`
+1. `download`
+2. `convert`
+
+By default, all steps are run consecutively.
 
 ## Data sources
 

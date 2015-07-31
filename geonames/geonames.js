@@ -1,21 +1,25 @@
 var fs = require('fs');
 var path = require('path');
-var stream = require('stream');
+// var stream = require('stream');
 var request = require('request');
 var csv = require('csv');
 var async = require('async');
-var es = require('event-stream');
-var AdmZip = require('adm-zip');
+// var es = require('event-stream');
+var zipfile = require('zipfile');
+var _ = require('highland');
+var R = require('ramda');
 
 var pitsAndRelations;
 
 // GeoNames configuration
 var baseUrl = 'http://download.geonames.org/export/dump/';
 var baseUri = 'http://sws.geonames.org/';
+var allCountries = 'allCountries.zip';
 var adminCodesFilenames = [
   'admin2Codes.txt',
   'admin1CodesASCII.txt'
 ];
+
 var columns = [
   'geonameid',
   'name',
@@ -37,34 +41,41 @@ var columns = [
   'timezone',
   'modificationDate'
 ];
+
 var types = {
   PCLI: 'Country',
   ADM1: 'Province',
   ADM2: 'Municipality',
+  PPLX: 'Neighbourhood',
   PPL: 'Place',
   CNL: 'Water'
 };
 
+function downloadGeoNamesFile(filename, callback) {
+  request
+    .get(baseUrl + filename)
+    .pipe(fs.createWriteStream(path.join(__dirname, filename)))
+    .on('error', function(err) {
+      callback(err);
+    })
+    .on('finish', function() {
+      callback();
+    });
+}
+
 exports.download = function(config, callback) {
-  var countryFilenames = config.countries.map(function(country) {
-    return country + '.zip';
-  });
+  async.eachSeries([allCountries].concat(adminCodesFilenames),
+    downloadGeoNamesFile,
+    function(err) {
 
-  async.eachSeries(countryFilenames.concat(adminCodesFilenames), function(filename, callback) {
-    request
-      .get(baseUrl + filename)
-      .pipe(fs.createWriteStream(path.join(__dirname, filename)))
-      .on('error', function(err) {
+      // Unzip allCountries
+      var zf = new zipfile.ZipFile(path.join(__dirname, allCountries));
+      var entryName = allCountries.replace('zip', 'txt');
+      zf.copyFile(entryName, path.join(__dirname, entryName), function(err) {
         callback(err);
-      })
-      .on('finish', function() {
-        callback();
       });
-  },
-
-  function(err) {
-    callback(err);
-  });
+    }
+  );
 };
 
 function getAdminCodes(config, callback) {
@@ -147,6 +158,67 @@ function getRelations(adminCodes, obj) {
   return relations;
 }
 
+function process(row, adminCodes, callback) {
+  var type;
+  var featureCode = row.featureCode;
+
+  while (featureCode.length > 0 && !type) {
+    type = types[featureCode];
+    featureCode = featureCode.slice(0, -1);
+  }
+
+  if (type) {
+    var emit = [];
+
+    var pit = {
+      uri: baseUri + row.geonameid,
+      name: row.name,
+      type: type,
+      geometry: {
+        type: 'Point',
+        coordinates: [
+          parseFloat(row.longitude),
+          parseFloat(row.latitude)
+        ]
+      },
+      data: {
+        featureClass: row.featureClass,
+        featureCode: row.featureCode,
+        countryCode: row.countryCode,
+        cc2: row.cc2,
+        admin1Code: row.admin1Code,
+        admin2Code: row.admin2Code,
+        admin3Code: row.admin3Code,
+        admin4Code: row.admin4Code
+      }
+    };
+
+    emit.push({
+      type: 'pits',
+      obj: pit
+    });
+
+    emit = emit.concat(getRelations(adminCodes, row).map(function(relation) {
+      return {
+        type: 'relations',
+        obj: relation
+      };
+    }));
+
+    async.eachSeries(emit, function(item, callback) {
+      pitsAndRelations.emit(item.type, item.obj, function(err) {
+        callback(err);
+      });
+    },
+
+    function(err) {
+      callback(err);
+    });
+  } else {
+    callback();
+  }
+}
+
 exports.convert = function(config, callback) {
   pitsAndRelations = require('../pits-and-relations')({
     source: 'geonames',
@@ -157,93 +229,32 @@ exports.convert = function(config, callback) {
     if (err) {
       callback(err);
     } else {
-      async.eachSeries(config.countries, function(country, callback) {
-        var filename = path.join(__dirname, country + '.zip');
-        var zip = new AdmZip(filename);
+      var filename = path.join(__dirname, 'allCountries.txt');
 
-        zip.getEntries().forEach(function(zipEntry) {
-          if (zipEntry.entryName == country + '.txt') {
-            var bufferStream = new stream.PassThrough();
-            bufferStream.end(zipEntry.getData());
-            bufferStream
-              .pipe(csv.parse({
-                delimiter: '\t',
-                quote: '\0',
-                columns: columns
-              }))
-              .pipe(es.map(function(row, callback) {
-                var type;
-                var featureCode = row.featureCode;
-
-                while (featureCode.length > 0 && !type) {
-                  type = types[featureCode];
-                  featureCode = featureCode.slice(0, -1);
-                }
-
-                if (type) {
-                  var emit = [];
-
-                  var pit = {
-                    uri: baseUri + row.geonameid,
-                    name: row.name,
-                    type: type,
-                    geometry: {
-                      type: 'Point',
-                      coordinates: [
-                        parseFloat(row.longitude),
-                        parseFloat(row.latitude)
-                      ]
-                    },
-                    data: {
-                      featureClass: row.featureClass,
-                      featureCode: row.featureCode,
-                      countryCode: row.countryCode,
-                      cc2: row.cc2,
-                      admin1Code: row.admin1Code,
-                      admin2Code: row.admin2Code,
-                      admin3Code: row.admin3Code,
-                      admin4Code: row.admin4Code
-                    }
-                  };
-
-                  emit.push({
-                    type: 'pits',
-                    obj: pit
-                  });
-
-                  emit = emit.concat(getRelations(adminCodes, row).map(function(relation) {
-                    return {
-                      type: 'relations',
-                      obj: relation
-                    };
-                  }));
-
-                  async.eachSeries(emit, function(item, callback) {
-                    pitsAndRelations.emit(item.type, item.obj, function(err) {
-                      callback(err);
-                    });
-                  },
-
-                  function(err) {
-                    callback(err);
-                  });
-                } else {
-                  callback();
-                }
-              }))
-              .on('error', function(err) {
-                callback(err);
-              })
-              .on('end', function() {
-                callback();
-              });
-          }
-        });
-      },
-
-      function(err) {
-        callback(err);
+      var extraUris = {};
+      (config.extraUris ? require(config.extraUris) : []).forEach(function(uri) {
+        var id = uri.replace('http://sws.geonames.org/', '');
+        extraUris[id] = true;
       });
+
+      _(fs.createReadStream(filename, {encoding: 'utf8'}))
+        .split()
+        .map(R.split('\t'))
+        .map(R.zipObj(columns))
+        .filter(function(row) {
+          return R.contains(row.countryCode, config.countries) || extraUris[row.geonameid];
+        })
+        .map(function(row) {
+          return _.curry(process, row, adminCodes);
+        })
+        .nfcall([])
+        .series()
+        .errors(function() {
+          callback;
+        })
+        .done(function() {
+          callback;
+        });
     }
   });
 };
