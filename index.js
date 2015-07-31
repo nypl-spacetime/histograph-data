@@ -1,6 +1,6 @@
 var path = require('path');
 var async = require('async');
-var config = require(process.env.HISTOGRAPH_CONFIG);
+var config = require('histograph-config');
 var parseArgs = require('minimist');
 require('colors');
 

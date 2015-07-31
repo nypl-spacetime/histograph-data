@@ -32,7 +32,8 @@
     "sparql-client": "^0.2.0",
     "urlify": "^0.3.6",
     "xml2js": "^0.4.8",
-    "zipfile": "^0.5.7"
+    "zipfile": "^0.5.7",
+    "histograph-config": "histograph/config"
   },
   "jshintConfig": {
     "node": true,
