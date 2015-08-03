@@ -1,12 +1,12 @@
 var fs = require('fs');
 var path = require('path');
-var config = require(process.env.HISTOGRAPH_CONFIG);
+var schemas = require('histograph-schemas');
 var geojsonhint = require('geojsonhint');
 var validator = require('is-my-json-valid');
 
 var validators = {
-  pits: validator(fs.readFileSync(config.schemas.dir + '/json/pits.schema.json', 'utf-8')),
-  relations: validator(fs.readFileSync(config.schemas.dir + '/json/relations.schema.json', 'utf-8'))
+  pits: validator(schemas.pits),
+  relations: validator(schemas.relations)
 };
 
 function createWriteStream(type, config) {

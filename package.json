@@ -34,7 +34,8 @@
     "urlify": "^0.3.6",
     "xml2js": "^0.4.8",
     "zipfile": "^0.5.7",
-    "histograph-config": "histograph/config"
+    "histograph-config": "histograph/config",
+    "histograph-schemas": "histograph/schemas#graphmalizer"
   },
   "jshintConfig": {
     "node": true,

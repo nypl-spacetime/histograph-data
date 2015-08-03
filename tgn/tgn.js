@@ -29,17 +29,15 @@ var sparqlEndpoint = 'http://vocab.getty.edu/sparql.rdf';
 
 exports.download = function(config, callback) {
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
-    async.eachSeries(config.parents, function(args, callback) {
+    async.eachSeries(config.parents, function(parent, callback) {
       var client = new SparqlClient(sparqlEndpoint);
       var sparqlQuery = fs.readFileSync(path.join(__dirname, sparqlFile + '.sparql'), 'utf8');
 
-      Object.keys(args).forEach(function(arg) {
-        sparqlQuery = sparqlQuery.replace(new RegExp('{{ ' + arg + ' }}', 'g'), args[arg]);
-      });
+      sparqlQuery = sparqlQuery.replace(new RegExp('{{ parent }}', 'g'), parent);
 
       client.query(sparqlQuery)
         .execute(function(error, results) {
-          fs.writeFileSync(path.join(__dirname, sparqlFile + '.' + args.parent.replace('tgn:', '') + '.xml'), results);
+          fs.writeFileSync(path.join(__dirname, sparqlFile + '.' +  parent.replace('tgn:', '') + '.xml'), results);
           callback();
         });
     },
@@ -63,9 +61,9 @@ exports.convert = function(config, callback) {
   var parser = new xml2js.Parser();
 
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
-    async.eachSeries(config.parents, function(args, callback) {
+    async.eachSeries(config.parents, function(parent, callback) {
 
-      fs.readFile(path.join(__dirname, sparqlFile + '.' + args.parent.replace('tgn:', '') + '.xml'), function(err, data) {
+      fs.readFile(path.join(__dirname, sparqlFile + '.' + parent.replace('tgn:', '') + '.xml'), function(err, data) {
         parser.parseString(data, function(err, result) {
           async.eachSeries(result['rdf:RDF']['rdf:Description'], function(element, callback) {
             parseElement(element, function(err) {
