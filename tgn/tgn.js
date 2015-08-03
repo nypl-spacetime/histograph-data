@@ -29,7 +29,7 @@ var sparqlEndpoint = 'http://vocab.getty.edu/sparql.rdf';
 
 exports.download = function(config, callback) {
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
-    async.eachSeries(config.args, function(args, callback) {
+    async.eachSeries(config.parents, function(args, callback) {
       var client = new SparqlClient(sparqlEndpoint);
       var sparqlQuery = fs.readFileSync(path.join(__dirname, sparqlFile + '.sparql'), 'utf8');
 
@@ -63,7 +63,7 @@ exports.convert = function(config, callback) {
   var parser = new xml2js.Parser();
 
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
-    async.eachSeries(config.args, function(args, callback) {
+    async.eachSeries(config.parents, function(args, callback) {
 
       fs.readFile(path.join(__dirname, sparqlFile + '.' + args.parent.replace('tgn:', '') + '.xml'), function(err, data) {
         parser.parseString(data, function(err, result) {
