@@ -12,22 +12,22 @@ var steps = [
 
 var argv = parseArgs(process.argv.slice(2));
 
-// By default, import all sources with have data config in configuration file
-var sources = Object.keys(config.data);
+// By default, import all datasets with have data config in configuration file
+var datasets = Object.keys(config.data);
 if (argv._.length > 0) {
-  sources = argv._;
+  datasets = argv._;
 }
 
-async.eachSeries(sources, function(source, callback) {
-  var importer = require('./' + path.join(source, source));
+async.eachSeries(datasets, function(dataset, callback) {
+  var importer = require('./' + path.join(dataset, dataset));
 
-  console.log('Processing source ' + source.inverse + ':');
+  console.log('Processing dataset ' + dataset.inverse + ':');
   async.eachSeries(steps, function(step, callback) {
     if (!argv.steps || (argv.steps && argv.steps.split(',').indexOf(step) > -1) || step === 'done') {
       if (importer[step]) {
         console.log('  Executing step ' + step.underline + '...');
 
-        importer[step](config.data[source], function(err) {
+        importer[step](config.data[dataset], function(err) {
           if (err) {
             console.log('    Error: '.red + JSON.stringify(err));
           } else {
@@ -58,6 +58,6 @@ async.eachSeries(sources, function(source, callback) {
 },
 
 function() {
-  console.log('\nAll sources done!'.green.underline);
+  console.log('\nAll datasets done!'.green.underline);
 });
 

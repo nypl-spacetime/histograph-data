@@ -221,7 +221,7 @@ function process(row, adminCodes, callback) {
 
 exports.convert = function(config, callback) {
   pitsAndRelations = require('../pits-and-relations')({
-    source: 'geonames',
+    dataset: 'geonames',
     truncate: true
   });
 

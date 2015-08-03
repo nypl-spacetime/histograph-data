@@ -106,7 +106,7 @@ function runQuery(client, sql, name, rowToPitsAndRelations, callback) {
 exports.convert = function(config, callback) {
 
   pitsAndRelations = require('../pits-and-relations')({
-    source: 'bag',
+    dataset: 'bag',
     truncate: true
   });
 

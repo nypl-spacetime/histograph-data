@@ -10,7 +10,7 @@ var validators = {
 };
 
 function createWriteStream(type, config) {
-  return fs.createWriteStream(path.join(config.source, config.source + '.' + type + '.ndjson'), {
+  return fs.createWriteStream(path.join(config.dataset, config.dataset + '.' + type + '.ndjson'), {
     flags: config.truncate === false ? 'r+' : 'w',
     encoding: 'utf8',
   });

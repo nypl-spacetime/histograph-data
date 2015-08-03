@@ -120,7 +120,7 @@ exports.download = function(config, callback) {
 
 exports.convert = function(config, callback) {
   pitsAndRelations = require('../pits-and-relations')({
-    source: 'nwb',
+    dataset: 'nwb',
     truncate: true
   });
 
