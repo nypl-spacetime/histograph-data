@@ -249,11 +249,11 @@ exports.convert = function(config, callback) {
         })
         .nfcall([])
         .series()
-        .errors(function() {
-          callback;
+        .errors(function(err) {
+          callback(err);
         })
         .done(function() {
-          callback;
+          callback();
         });
     }
   });
