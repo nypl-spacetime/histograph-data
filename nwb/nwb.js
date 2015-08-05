@@ -120,7 +120,7 @@ exports.download = function(config, callback) {
 
 exports.convert = function(config, callback) {
   pitsAndRelations = require('../pits-and-relations')({
-    source: 'nwb',
+    dataset: 'nwb',
     truncate: true
   });
 
@@ -149,7 +149,7 @@ exports.convert = function(config, callback) {
       var pit = {
         id: id,
         name: properties.STT_NAAM,
-        type: 'hg:Street',
+        type: 'Street',
         data: {
           wpsnaamnen: properties.WPSNAAMNEN,
           gme_id: properties.GME_ID,

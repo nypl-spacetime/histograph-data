@@ -14,32 +14,30 @@ var sparqlFiles = [
 ];
 
 var types = {
-  nations: 'hg:Country',
-  area: 'hg:Area',
-  canals: 'hg:Water',
-  channels: 'hg:Water',
-  'general regions': 'hg:Region',
-  'inhabited places': 'hg:Place',
-  provinces: 'hg:Province',
-  'second level subdivisions': 'hg:Region',
-  neighborhoods: 'hg:Neighbourhood'
+  nations: 'Country',
+  area: 'Area',
+  canals: 'Water',
+  channels: 'Water',
+  'general regions': 'Region',
+  'inhabited places': 'Place',
+  provinces: 'Province',
+  'second level subdivisions': 'Region',
+  neighborhoods: 'Neighbourhood'
 };
 
 var sparqlEndpoint = 'http://vocab.getty.edu/sparql.rdf';
 
 exports.download = function(config, callback) {
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
-    async.eachSeries(config.args, function(args, callback) {
+    async.eachSeries(config.parents, function(parent, callback) {
       var client = new SparqlClient(sparqlEndpoint);
       var sparqlQuery = fs.readFileSync(path.join(__dirname, sparqlFile + '.sparql'), 'utf8');
 
-      Object.keys(args).forEach(function(arg) {
-        sparqlQuery = sparqlQuery.replace(new RegExp('{{ ' + arg + ' }}', 'g'), args[arg]);
-      });
+      sparqlQuery = sparqlQuery.replace(new RegExp('{{ parent }}', 'g'), parent);
 
       client.query(sparqlQuery)
         .execute(function(error, results) {
-          fs.writeFileSync(path.join(__dirname, sparqlFile + '.' + args.parent.replace('tgn:', '') + '.xml'), results);
+          fs.writeFileSync(path.join(__dirname, sparqlFile + '.' +  parent.replace('tgn:', '') + '.xml'), results);
           callback();
         });
     },
@@ -56,16 +54,16 @@ exports.download = function(config, callback) {
 
 exports.convert = function(config, callback) {
   pitsAndRelations = require('../pits-and-relations')({
-    source: 'tgn',
+    dataset: 'tgn',
     truncate: true
   });
 
   var parser = new xml2js.Parser();
 
   async.eachSeries(sparqlFiles, function(sparqlFile, callback) {
-    async.eachSeries(config.args, function(args, callback) {
+    async.eachSeries(config.parents, function(parent, callback) {
 
-      fs.readFile(path.join(__dirname, sparqlFile + '.' + args.parent.replace('tgn:', '') + '.xml'), function(err, data) {
+      fs.readFile(path.join(__dirname, sparqlFile + '.' + parent.replace('tgn:', '') + '.xml'), function(err, data) {
         parser.parseString(data, function(err, result) {
           async.eachSeries(result['rdf:RDF']['rdf:Description'], function(element, callback) {
             parseElement(element, function(err) {
@@ -164,13 +162,13 @@ exports.convert = function(config, callback) {
       var broaderPreferred = getElementTagAttribute(element, 'gvp:broaderPreferred', 'rdf:resource');
       if (broaderPreferred) {
         // This implies that current PIT lies in broaderPreferred
-        // Add hg:liesIn relation
+        // Add liesIn relation
         emit.push({
           type: 'relations',
           obj: {
             from: uri,
             to: broaderPreferred,
-            type: 'hg:liesIn'
+            type: 'liesIn'
           }
         });
       }
@@ -178,13 +176,13 @@ exports.convert = function(config, callback) {
       var subject = getElementTagAttribute(element, 'rdf:subject', 'rdf:resource');
       if (subject) {
         // This implies that subject is an alternative name for current PIT
-        // Add hg:sameHgConcept relation
+        // Add sameHgConcept relation
         emit.push({
           type: 'relations',
           obj: {
             from: uri,
             to: subject,
-            type: 'hg:sameHgConcept'
+            type: 'sameHgConcept'
           }
         });
       }
