@@ -35,7 +35,7 @@
     "xml2js": "^0.4.8",
     "zipfile": "^0.5.7",
     "histograph-config": "histograph/config",
-    "histograph-schemas": "histograph/schemas#graphmalizer"
+    "histograph-schemas": "histograph/schemas"
   },
   "jshintConfig": {
     "node": true,
