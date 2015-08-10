@@ -80,7 +80,7 @@ module.exports = [
       var pit = {
         id: parseInt(row.id),
         type: 'Building',
-        hasBeginning: row.bouwjaar + '-01-01',
+        validSince: row.bouwjaar,
         geometry: JSON.parse(row.geometry)
       };
 
