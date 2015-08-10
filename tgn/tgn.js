@@ -168,7 +168,7 @@ exports.convert = function(config, callback) {
           obj: {
             from: uri,
             to: broaderPreferred,
-            type: 'liesIn'
+            type: 'hg:liesIn'
           }
         });
       }
@@ -182,7 +182,7 @@ exports.convert = function(config, callback) {
           obj: {
             from: uri,
             to: subject,
-            type: 'sameHgConcept'
+            type: 'hg:sameHgConcept'
           }
         });
       }

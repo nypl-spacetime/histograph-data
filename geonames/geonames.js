@@ -122,7 +122,7 @@ function getRelations(adminCodes, obj) {
         {
           from: baseUri + obj.geonameid,
           to: baseUri + 2750405,
-          type: 'liesIn'
+          type: 'hg:liesIn'
         }
       ];
     } else if (obj.featureCode === 'ADM2' && obj.admin1Code) {
@@ -131,7 +131,7 @@ function getRelations(adminCodes, obj) {
         {
           from: baseUri + obj.geonameid,
           to: baseUri + adminCodes.admin1[obj.countryCode + '.' + obj.admin1Code].geonameid,
-          type: 'liesIn'
+          type: 'hg:liesIn'
         }
       ];
     } else if (obj.featureCode.indexOf('PPL') === 0 && obj.admin1Code && obj.admin2Code) {
@@ -143,7 +143,7 @@ function getRelations(adminCodes, obj) {
           {
             from: baseUri + obj.geonameid,
             to: baseUri + parentObj.geonameid,
-            type: 'liesIn'
+            type: 'hg:liesIn'
           }
         ];
       } else {
