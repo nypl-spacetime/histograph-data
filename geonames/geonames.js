@@ -43,12 +43,12 @@ var columns = [
 ];
 
 var types = {
-  PCLI: 'Country',
-  ADM1: 'Province',
-  ADM2: 'Municipality',
-  PPLX: 'Neighbourhood',
-  PPL: 'Place',
-  CNL: 'Water'
+  PCLI: 'hg:Country',
+  ADM1: 'hg:Province',
+  ADM2: 'hg:Municipality',
+  PPLX: 'hg:Neighbourhood',
+  PPL: 'hg:Place',
+  CNL: 'hg:Water'
 };
 
 function downloadGeoNamesFile(filename, callback) {

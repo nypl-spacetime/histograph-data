@@ -14,15 +14,15 @@ var sparqlFiles = [
 ];
 
 var types = {
-  nations: 'Country',
-  area: 'Area',
-  canals: 'Water',
-  channels: 'Water',
-  'general regions': 'Region',
-  'inhabited places': 'Place',
-  provinces: 'Province',
-  'second level subdivisions': 'Region',
-  neighborhoods: 'Neighbourhood'
+  nations: 'hg:Country',
+  area: 'hg:Area',
+  canals: 'hg:Water',
+  channels: 'hg:Water',
+  'general regions': 'hg:Region',
+  'inhabited places': 'hg:Place',
+  provinces: 'hg:Province',
+  'second level subdivisions': 'hg:Region',
+  neighborhoods: 'hg:Neighbourhood'
 };
 
 var sparqlEndpoint = 'http://vocab.getty.edu/sparql.rdf';
