@@ -60,4 +60,3 @@ async.eachSeries(datasets, function(dataset, callback) {
 function() {
   console.log('\nAll datasets done!'.green.underline);
 });
-
