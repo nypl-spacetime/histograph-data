@@ -1,0 +1,9 @@
+{
+  "id": "whosonfirst",
+  "title": "Who's On First",
+  "license": "http://whosonfirst.mapzen.com#License",
+  "description": "Who's On First is a gazetteer of places. Not quite all the places in the world but a whole lot of them and, we hope, the kinds of places that we mostly share in common.",
+  "author": "Aaron Cope, Nathaniel Kelso ",
+  "website": "http://whosonfirst.mapzen.com/",
+  "creationDate": "2015-10-08"
+}
