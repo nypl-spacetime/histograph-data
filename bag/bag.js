@@ -25,6 +25,10 @@ var woonplaats = null;
 //   name: 'bussum',
 //   code: '1331'
 // };
+// var woonplaats = {
+//   name: 'utrecht',
+//   code: '3295'
+// };
 
 function runAllQueries(client, callback) {
   async.eachSeries(queries, function(query, callback) {
