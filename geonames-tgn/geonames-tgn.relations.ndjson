@@ -6704,3 +6704,4 @@
 {"from":"http://sws.geonames.org/2747351","to":"http://vocab.getty.edu/tgn/7006837","type":"hg:sameHgConcept"}
 {"from":"http://sws.geonames.org/2747364","to":"http://vocab.getty.edu/tgn/1047589","type":"hg:sameHgConcept"}
 {"from":"http://sws.geonames.org/2752435","to":"http://vocab.getty.edu/tgn/7264102","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2750405","to":"http://vocab.getty.edu/tgn/7016845","type":"hg:sameHgConcept"}
