@@ -6705,3 +6705,15 @@
 {"from":"http://sws.geonames.org/2747364","to":"http://vocab.getty.edu/tgn/1047589","type":"hg:sameHgConcept"}
 {"from":"http://sws.geonames.org/2752435","to":"http://vocab.getty.edu/tgn/7264102","type":"hg:sameHgConcept"}
 {"from":"http://sws.geonames.org/2750405","to":"http://vocab.getty.edu/tgn/7016845","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2756631","to":"http://vocab.getty.edu/tgn/7003614","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/3319179","to":"http://vocab.getty.edu/tgn/7003615","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2755812","to":"http://vocab.getty.edu/tgn/7003616","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2755634","to":"http://vocab.getty.edu/tgn/7003619","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2755249","to":"http://vocab.getty.edu/tgn/7003613","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2751596","to":"http://vocab.getty.edu/tgn/7003622","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2749990","to":"http://vocab.getty.edu/tgn/7003624","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2749879","to":"http://vocab.getty.edu/tgn/7006951","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2748838","to":"http://vocab.getty.edu/tgn/7003626","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2745909","to":"http://vocab.getty.edu/tgn/7003627","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2744011","to":"http://vocab.getty.edu/tgn/7003635","type":"hg:sameHgConcept"}
+{"from":"http://sws.geonames.org/2743698","to":"http://vocab.getty.edu/tgn/7003632","type":"hg:sameHgConcept"}
