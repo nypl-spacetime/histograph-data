@@ -1,7 +1,0 @@
-{
-  "id": "bag-geonames-tgn",
-  "title": "Koppeling tussen BAG-plaatsen, GeoNames en TGN",
-  "license": "Public domain",
-  "description": "Bron: bag_nl_woonplaatsen_with_gn_tgn.csv",
-  "author": "Menno den Engelsen"
-}
