@@ -1,8 +1,0 @@
-{
-  "id": "nwb",
-  "title": "Nationaal Wegenbestand",
-  "license": "CC-0",
-  "description": "Het NWB-Wegen is een digitaal geografisch bestand van nagenoeg alle wegen in Nederland. Opgenomen zijn alle wegen die worden beheerd door wegbeheerders als het Rijk, provincies, gemeenten en waterschappen, echter alleen voor zover deze zijn voorzien van een straatnaam of nummer. Dus ook losliggende voet- en fietspaden en onverharde wegen zijn, indien voorzien van een straatnaam, in het NWB-Wegen opgenomen. Indien een weg gescheiden rijbanen heeft, wat vooral het geval is bij rijkswegen, worden deze als aparte wegvakken in het bestand verwerkt. In totaal beslaat het NWB-Wegen ongeveer 148.000 kilometer gedigitaliseerde wegvakken (in aantal +/-945000). Het NWB-Wegen wordt 12 keer per jaar geactualiseerd.",
-  "author": "Ministerie van Infrastructuur en Milieu | Rijkswaterstaat",
-  "website": "https://data.overheid.nl/data/dataset/nationaal-wegen-bestand-wegen-hectopunten"
-}
