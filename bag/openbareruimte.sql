@@ -7,3 +7,5 @@ FROM
   openbareruimteactueelbestaand opr
 JOIN
   woonplaatsactueelbestaand wp ON opr.gerelateerdewoonplaats = wp.identificatie
+WHERE
+  opr.openbareruimtetype = 'Weg'

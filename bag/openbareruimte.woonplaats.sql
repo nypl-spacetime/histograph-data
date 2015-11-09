@@ -8,4 +8,5 @@ FROM
 JOIN
   woonplaatsactueelbestaand wp ON opr.gerelateerdewoonplaats = wp.identificatie
 WHERE
-  wp.identificatie = {woonplaatscode}
+  wp.identificatie = {woonplaatscode} AND
+  opr.openbareruimtetype = 'Weg'
