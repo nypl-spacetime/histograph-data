@@ -1,40 +1,76 @@
 # Histograph Data
 
-Scripts to download and convert default data sources to Histograph format. Configuration of the individual scripts can be done in the [Histograph configuration file](https://github.com/histograph/config).
+Histograph's data tool loads separate data modules which download and convert data from different data sources, and convert this data to Histograph datasets. Currently, the following modules are available:
 
-First, install dependencies:
+| Title           | Module             | Dataset ID
+|-----------------|--------------------|---------------------
+| [Getty Thesaurus of Geographic Names (TGN)](http://www.getty.edu/research/tools/vocabularies/tgn/) |  [`histograph/data-tgn`](https://github.com/histograph/data-tgn) | `tgn`
+| [GeoNames](http://www.geonames.org/) | [`histograph/data-geonames`](https://github.com/histograph/data-geonames) | `geonames`
+| [Nationaal Wegenbestand (NWB)](https://data.overheid.nl/data/dataset/nationaal-wegen-bestand-wegen-hectopunten) | [`histograph/data-nwb`](https://github.com/histograph/data-nwb) | `nwb`
+| [Basis Registraties Adressen en Gebouwen (BAG)](http://www.basisregistratiesienm.nl/basisregistraties/adressen-en-gebouwen) | [`histograph/data-bag`](https://github.com/histograph/data-bag) | `bag`
 
-    $ npm install
+## Configuration
 
-Then, you can run all source processing scripts defined in the configuration file like this:
+The onfiguration of the data tool is done in the [Histograph configuration file](https://github.com/histograph/config), under the `data` key:
 
-    $ node index.js
+| Parameter      | Description
+|----------------|-----------------------------------------
+| `baseDir`      | Path (absolute, or relative to data tool) where data tool looks for data modules
+| `modulePrefix` | Directory prefix used to identify data modules (e.g. `data-tgn`)
+| `generatedDir` | Directory to which data modules write their data
 
-Or you can select the scripts you want to run yourself:
+The configuration of the separate data modules can also be done in configuration file.
 
-    $ node index.js geonames tgn ...
+## Installation
+
+First, clone this repository and the repository of the data modules you need:
+
+    git clone https://github.com/histograph/data.git
+
+    # Data module repositories:
+    git clone https://github.com/histograph/data-tgn.git
+    git clone https://github.com/histograph/data-geonames.git
+    git clone https://github.com/histograph/data-bag.git
+    git clone https://github.com/histograph/data-nwb.git
+
+Then, install dependencies:
+
+    cd data
+    npm install
+    cd ..
+
+    # Data module repositories:    
+    cd data-tgn
+    npm install
+    cd ..
+    cd data-geonames
+    npm install
+    cd ..
+    cd data-bag
+    npm install
+    cd ..
+    cd data-nwb
+    npm install
+    cd ..
+
+## Download and convert data
+
+Run the data tool without command line arguments to get a list of the available data modules:
+
+  node index.js
+
+To execute a module, provide their dataset IDs as command line parameters:
+
+    node index.js geonames tgn ...
 
 Alternatively, you can select the processing steps you want to run:
 
-    $ node index.js --steps=convert tgn geonames
-
-Valid processing steps:
-
-1. `download`
-2. `convert`
+    node index.js --steps=convert tgn geonames
 
 By default, all steps are run consecutively.
-
-## Data sources
-
-- [GeoNames](http://www.geonames.org/)
-- [Getty Thesaurus of Geographic Names](http://www.getty.edu/research/tools/vocabularies/tgn/)
-- [Basisregistraties Adressen en gebouwen](http://www.basisregistratiesienm.nl/basisregistraties/adressen-en-gebouwen)
-- [Nationaal Wegenbestand](https://data.overheid.nl/data/dataset/nationaal-wegen-bestand-wegen-hectopunten)
-- [CShapes](http://nils.weidmann.ws/projects/cshapes)
 
 ## License
 
 Copyright (C) 2015 [Waag Society](http://waag.org).
 
-The source for Histograph is released under the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+MIT

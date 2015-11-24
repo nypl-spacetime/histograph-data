@@ -1,62 +1,136 @@
+var fs = require('fs');
+var util = require('util');
 var path = require('path');
-var async = require('async');
+var mkdirp = require('mkdirp');
+var chalk = require('chalk');
+var H = require('highland');
 var config = require('histograph-config');
-var parseArgs = require('minimist');
-require('colors');
+var minimist = require('minimist');
+var datasetWriter = require('./dataset-writer');
 
-var steps = [
-  'download',
-  'convert',
-  'done'
-];
+var argv = minimist(process.argv.slice(2));
 
-var argv = parseArgs(process.argv.slice(2));
-
-// By default, import all datasets with have data config in configuration file
-var datasets = Object.keys(config.data);
-if (argv._.length > 0) {
-  datasets = argv._;
-}
-
-async.eachSeries(datasets, function(dataset, callback) {
-  var importer = require('./' + path.join(dataset, dataset));
-
-  console.log('Processing dataset ' + dataset.inverse + ':');
-  async.eachSeries(steps, function(step, callback) {
-    if (!argv.steps || (argv.steps && argv.steps.split(',').indexOf(step) > -1) || step === 'done') {
-      if (importer[step]) {
-        console.log('  Executing step ' + step.underline + '...');
-
-        importer[step](config.data[dataset], function(err) {
-          if (err) {
-            console.log('    Error: '.red + JSON.stringify(err));
-          } else {
-            console.log('    Done!'.green);
-          }
-
-          callback(err);
-        });
-      } else {
-        callback();
-      }
-    } else {
-      if (importer[step]) {
-        console.log(('  Skipping step ' + step.underline + '...').gray);
-      }
-
-      callback();
+var readDir = H.wrapCallback(function(dir, callback) {
+  return fs.readdir(dir, function(err, files) {
+    var dirs = [];
+    if (!err) {
+      dirs = files || [];
     }
-  },
 
-  function(err) {
-    if (err) {
-      console.log('Error: '.red + err);
-    }
+    dirs = files
+      .filter(function(file) {
+        return file.startsWith(config.data.modulePrefix);
+      })
+      .map(function(dir) {
+        return dir.replace(config.data.modulePrefix, '');
+      });
+
+    callback(err, dirs);
+  });
+});
+
+var readModule = function(d) {
+  var module;
+
+  try {
+    module = require(path.join(config.data.baseDir, config.data.modulePrefix + d, d.replace(config.data.modulePrefix, '')));
+  } catch (err) {
+    console.error(chalk.red('Error reading data module: ') + d);
+    console.log(chalk.gray(err.stack.split('\n').join('\n')));
+    return null;
+  }
+
+  return {
+    dataset: d,
+    config: config.data.modules[d],
+    module: module
+  };
+};
+
+var ensureDir = function(d) {
+  var dir = path.join(config.data.generatedDir, d.dataset);
+  mkdirp.sync(dir);
+  return d;
+};
+
+var copyDatasetFile = function(d) {
+  var source = path.join(config.data.baseDir, config.data.modulePrefix + d.dataset, util.format('%s.dataset.json', d.dataset));
+  var target = path.join(config.data.generatedDir, d.dataset, util.format('%s.dataset.json', d.dataset));
+  fs.createReadStream(source).pipe(fs.createWriteStream(target));
+  return d;
+};
+
+var wrapStep = function(step, config, dir, writer, callback) {
+  console.log(util.format('    %s %s', chalk.gray('executing:'), chalk.blue(step.name)));
+  step(config, dir, writer, function(err) {
+    console.log(util.format('    %s %s %s', chalk.gray('result:'), err ? chalk.red('error') : chalk.green('success'), err ? chalk.gray(JSON.stringify(err)) : ''));
 
     callback();
   });
-},
+};
 
-function() {
-  console.log('\nAll datasets done!'.green.underline);
-});
+var logModuleTitle = function(d) {
+  console.log(util.format(' - %s %s', d.dataset, chalk.gray(d.module.title + ' - ' + chalk.underline(d.module.url))));
+};
+
+console.log('Using data modules in ' + chalk.underline(util.format('%s%s*', config.data.baseDir, config.data.modulePrefix)));
+console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(config.data.generatedDir))));
+
+if (argv._.length === 0) {
+  var count = 0;
+
+  // List data modules - don't run anything
+  readDir(config.data.baseDir)
+    .flatten()
+    .map(readModule)
+    .compact()
+    .each(function(d) {
+      logModuleTitle(d);
+      console.log(util.format('    %s %s', chalk.gray('steps:'), chalk.blue((d.module.steps || []).map(function(f) { return f.name; }).join(', '))));
+      count += 1;
+    })
+    .done(function() {
+      if (!count) {
+        console.log(chalk.red('No data modules found...'));
+      }
+
+      console.log('\nUsage: node index.js [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]');
+    });
+} else {
+  var writers = [];
+
+  H(argv._)
+    .map(readModule)
+    .compact()
+    .map(ensureDir)
+    .map(copyDatasetFile)
+    .map(function(d) {
+      logModuleTitle(d);
+
+      var dir = path.join(config.data.generatedDir, d.dataset);
+      var steps = d.module.steps;
+
+      if (argv.steps) {
+        steps = steps.filter(function(step) {
+          return argv.steps.indexOf(step.name) > -1;
+        });
+      }
+
+      var writer = datasetWriter(d.dataset, dir);
+      writers.push(writer);
+
+      return steps.map(function(step) {
+        return H.curry(wrapStep, step, d.config, dir, writer);
+      });
+    })
+    .flatten()
+    .nfcall([])
+    .series()
+    .done(function() {
+      writers.forEach(function(writer) {
+        writer.close();
+      });
+
+      console.log('Done...');
+    });
+}
