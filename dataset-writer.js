@@ -33,12 +33,18 @@ module.exports = function(dataset, dir) {
     var errors;
 
     if (!jsonValid) {
-      errors = validators[pluralType].errors;
+      errors = {
+        errors: validators[pluralType].errors,
+        data: data.obj
+      };
       valid = false;
     } else if (type === 'pit' && obj.geometry) {
       var geojsonErrors = geojsonhint.hint(obj.geometry);
       if (geojsonErrors.length > 0) {
-        errors = geojsonErrors;
+        errors = {
+          errors: geojsonErrors,
+          data: data.obj
+        };
         valid = false;
       }
     }
