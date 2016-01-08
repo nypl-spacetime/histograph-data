@@ -70,10 +70,20 @@ var wrapStep = function(step, config, dir, writer, callback) {
 };
 
 var logModuleTitle = function(d) {
-  console.log(util.format(' - %s %s', d.dataset, chalk.gray(d.module.title + ' - ' + chalk.underline(d.module.url))));
+  var gray = [];
+
+  if (d.module.title) {
+    gray.push(d.module.title);
+  }
+
+  if (d.module.url) {
+    gray.push(chalk.underline(d.module.url));
+  }
+
+  console.log(util.format(' - %s %s', d.dataset, chalk.gray(gray.join(' - '))));
 };
 
-console.log('Using data modules in ' + chalk.underline(util.format('%s%s*', config.data.baseDir, config.data.modulePrefix)));
+console.log('Using data modules in ' + chalk.underline(util.format('%s*', path.join(config.data.baseDir, config.data.modulePrefix))));
 console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(config.data.generatedDir))));
 
 if (argv._.length === 0) {
@@ -86,7 +96,16 @@ if (argv._.length === 0) {
     .compact()
     .each(function(d) {
       logModuleTitle(d);
-      console.log(util.format('    %s %s', chalk.gray('steps:'), chalk.blue((d.module.steps || []).map(function(f) { return f.name; }).join(', '))));
+
+      var stepsMessage;
+      if (d.module.steps) {
+        stepsMessage = chalk.blue((d.module.steps).map(function(f) { return f.name; }).join(', '));
+      } else {
+        stepsMessage = chalk.red('no steps found!');
+      }
+
+      console.log(util.format('    %s %s', chalk.gray('steps:'), stepsMessage));
+
       count += 1;
     })
     .done(function() {
