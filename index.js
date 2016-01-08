@@ -35,8 +35,11 @@ var readModule = function(d) {
   try {
     module = require(path.join(config.data.baseDir, config.data.modulePrefix + d, d.replace(config.data.modulePrefix, '')));
   } catch (err) {
-    console.error(chalk.red('Error reading data module: ') + d);
-    console.log(chalk.gray(err.stack.split('\n').join('\n')));
+    if(err.code !== 'MODULE_NOT_FOUND') {
+      console.error(chalk.red('No data module: ') + d);
+      console.log(chalk.gray(err.stack.split('\n').join('\n')));
+    }
+
     return null;
   }
 
