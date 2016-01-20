@@ -31,11 +31,22 @@ var readDir = H.wrapCallback(function(dir, callback) {
 
 var readModule = function(d) {
   var module;
+  var meta;
+  var modulePath = path.join(config.data.baseDir, config.data.modulePrefix + d, d.replace(config.data.modulePrefix, ''));
+  var datasetPath = path.join(config.data.baseDir, config.data.modulePrefix + d, util.format('%s.dataset.json', d));
 
   try {
-    module = require(path.join(config.data.baseDir, config.data.modulePrefix + d, d.replace(config.data.modulePrefix, '')));
+    module = require(modulePath);
+    meta = require(datasetPath);
   } catch (err) {
-    if(err.code !== 'MODULE_NOT_FOUND') {
+    var moduleNotFound = (err.code == 'MODULE_NOT_FOUND');
+
+    if (moduleNotFound) {
+      // See if module itself is not found, or a module required by the module!
+      moduleNotFound = err.message.includes(modulePath);
+    }
+
+    if (!moduleNotFound) {
       console.error(chalk.red('No data module: ') + d);
       console.log(chalk.gray(err.stack.split('\n').join('\n')));
     }
@@ -46,6 +57,7 @@ var readModule = function(d) {
   return {
     dataset: d,
     config: config.data.modules[d],
+    meta: meta,
     module: module
   };
 };
@@ -75,12 +87,14 @@ var wrapStep = function(step, config, dir, writer, callback) {
 var logModuleTitle = function(d) {
   var gray = [];
 
-  if (d.module.title) {
-    gray.push(d.module.title);
-  }
+  if (d.meta) {
+    if (d.meta.title) {
+      gray.push(d.meta.title);
+    }
 
-  if (d.module.url) {
-    gray.push(chalk.underline(d.module.url));
+    if (d.meta.website) {
+      gray.push(chalk.underline(d.meta.website));
+    }
   }
 
   console.log(util.format(' - %s %s', d.dataset, chalk.gray(gray.join(' - '))));
