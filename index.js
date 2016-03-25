@@ -1,62 +1,207 @@
-var path = require('path');
-var async = require('async');
-var config = require('histograph-config');
-var parseArgs = require('minimist');
-require('colors');
+var fs = require('fs')
+var util = require('util')
+var path = require('path')
+var mkdirp = require('mkdirp')
+var chalk = require('chalk')
+var H = require('highland')
+var config = require('histograph-config')
+var minimist = require('minimist')
 
-var steps = [
-  'download',
-  'convert',
-  'done'
-];
+var datasetWriter = require('./lib/dataset-writer')
+var datasetReader = require('./lib/dataset-reader')
 
-var argv = parseArgs(process.argv.slice(2));
+var argv = minimist(process.argv.slice(2))
 
-// By default, import all datasets with have data config in configuration file
-var datasets = Object.keys(config.data);
-if (argv._.length > 0) {
-  datasets = argv._;
+var readDir = H.wrapCallback(function (dir, callback) {
+  return fs.readdir(dir, function (err, files) {
+    var dirs = []
+    if (!err) {
+      dirs = files || []
+    }
+
+    dirs = files
+      .filter(function (file) {
+        return file.startsWith(config.data.modulePrefix)
+      })
+      .map(function (dir) {
+        return dir.replace(config.data.modulePrefix, '')
+      })
+
+    callback(err, dirs)
+  })
+})
+
+var readModule = function (d) {
+  var module
+  var meta
+  var modulePath = path.join(config.data.moduleDir, config.data.modulePrefix + d, d.replace(config.data.modulePrefix, ''))
+  var datasetPath = path.join(config.data.moduleDir, config.data.modulePrefix + d, util.format('%s.dataset.json', d))
+
+  try {
+    module = require(modulePath)
+    meta = require(datasetPath)
+  } catch (err) {
+    var moduleNotFound = (err.code === 'MODULE_NOT_FOUND')
+
+    if (moduleNotFound) {
+      // See if module itself is not found, or a module required by the module!
+      moduleNotFound = err.message.includes(modulePath)
+    }
+
+    if (moduleNotFound) {
+      console.error(chalk.red('No data module: ') + d)
+    } else {
+      console.error(chalk.red('Error loading data module: ') + d)
+    }
+    console.log(chalk.gray(err.stack.split('\n').join('\n')))
+
+    return null
+  }
+
+  return {
+    dataset: d,
+    config: config.data.modules[d],
+    meta: meta,
+    module: module
+  }
 }
 
-async.eachSeries(datasets, function(dataset, callback) {
-  var importer = require('./' + path.join(dataset, dataset));
+var ensureDir = function (dir) {
+  mkdirp.sync(dir)
+}
 
-  console.log('Processing dataset ' + dataset.inverse + ':');
-  async.eachSeries(steps, function(step, callback) {
-    if (!argv.steps || (argv.steps && argv.steps.split(',').indexOf(step) > -1) || step === 'done') {
-      if (importer[step]) {
-        console.log('  Executing step ' + step.underline + '...');
+var wrapStep = function (step, config, dir, writer, callback) {
+  var done = false
+  console.log(util.format('    %s %s', chalk.gray('executing:'), chalk.blue(step.name)))
 
-        importer[step](config.data[dataset], function(err) {
-          if (err) {
-            console.log('    Error: '.red + JSON.stringify(err));
-          } else {
-            console.log('    Done!'.green);
-          }
+  try {
+    step(config, dir, writer, function (err) {
+      if (!done) {
+        console.log(util.format('    %s %s %s', chalk.gray('result:'), err ? chalk.red('error') : chalk.green('success'), err ? chalk.gray(err.message || err.stack || err) : ''))
+        callback(err)
+      }
+      done = true
+    })
+  } catch (err) {
+    callback(err)
+  }
+}
 
-          callback(err);
-        });
+var logModuleTitle = function (d) {
+  var gray = []
+
+  if (d.meta) {
+    if (d.meta.title) {
+      gray.push(d.meta.title)
+    }
+
+    if (d.meta.website) {
+      gray.push(chalk.underline(d.meta.website))
+    }
+  }
+
+  console.log(util.format(' - %s %s', d.dataset, chalk.gray(gray.join(' - '))))
+}
+
+console.log('Using data modules in ' + chalk.underline(util.format('%s*', path.join(config.data.moduleDir, config.data.modulePrefix))))
+console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(config.data.outputDir))))
+
+if (argv._.length === 0) {
+  var count = 0
+
+  // List data modules - don't run anything
+  readDir(config.data.moduleDir)
+    .flatten()
+    .map(readModule)
+    .compact()
+    .each(function (d) {
+      logModuleTitle(d)
+
+      var stepsMessage
+      if (d.module.steps) {
+        // stepsMessage = chalk.blue((d.module.steps).map(function (f) { return f.name; }).join(', '))
+        stepsMessage = d.module.steps
+          .map((step) => chalk.blue(step.name))
+          .join(chalk.gray(', '))
       } else {
-        callback();
-      }
-    } else {
-      if (importer[step]) {
-        console.log(('  Skipping step ' + step.underline + '...').gray);
+        stepsMessage = chalk.red('no steps found!')
       }
 
-      callback();
-    }
-  },
+      console.log(util.format('    %s %s', chalk.gray('steps:'), stepsMessage))
 
-  function(err) {
-    if (err) {
-      console.log('Error: '.red + err);
-    }
+      count += 1
+    })
+    .done(function () {
+      if (!count) {
+        console.log(chalk.red('No data modules found...'))
+      }
 
-    callback();
-  });
-},
+      console.log('\nUsage: node index.js [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]')
+    })
+} else {
+  var exitCode = 0
+  process.on('exit', () => process.exit(exitCode))
 
-function() {
-  console.log('\nAll datasets done!'.green.underline);
-});
+  var writers = []
+
+  H(argv._)
+    .map(readModule)
+    .compact()
+    .map(function (d) {
+      logModuleTitle(d)
+      var steps = d.module.steps
+
+      return steps.map(function (step, i) {
+        if (argv.steps && !(argv.steps.indexOf(step.name) > -1)) {
+          // if steps command line argument is supplied, only execute steps in argv.steps
+          // step.execute is the step's function to be executed,
+          //   step.execute.name is the name of this function
+          return null
+        }
+
+        var dir = path.join(config.data.outputDir, step.name, d.dataset)
+
+        // Set directory of previous step
+        var previousDir
+        if (i > 0) {
+          previousDir = path.join(config.data.outputDir, steps[i - 1].name, d.dataset)
+        }
+
+        ensureDir(dir)
+
+        var tools = {
+          writer: datasetWriter(d.dataset, dir, d.meta),
+          reader: datasetReader
+        }
+
+        writers.push(tools.writer)
+
+        var dirs = {
+          current: dir,
+          previous: previousDir
+        }
+
+        return H.curry(wrapStep, step, d.config, dirs, tools)
+      })
+    })
+    .errors((err) => {
+      exitCode = 1
+      console.error(err)
+    })
+    .flatten()
+    .compact()
+    .nfcall([])
+    .series()
+    .errors((err) => {
+      exitCode = 1
+      console.error(err)
+    })
+    .done(function () {
+      writers.forEach((writer) => writer.close())
+      if (exitCode === 0) {
+        console.log('Done...')
+      } else {
+        console.log(chalk.red('Done, with errors...'))
+      }
+    })
+}
