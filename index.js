@@ -158,9 +158,27 @@ if (argv._.length === 0) {
     .map(function (d) {
       logModuleTitle(d)
       var steps = d.module.steps
+      var argvSteps = []
+      if (argv.steps) {
+        argvSteps = argv.steps.split(',')
+      }
+
+      if (argvSteps.length) {
+        var missingSteps = []
+        var availableSteps = steps.map(step => step.name)
+        argvSteps.forEach(step => {
+          if (availableSteps.indexOf(step) === -1) {
+            missingSteps.push(step)
+          }
+        })
+
+        if (missingSteps.length) {
+          throw `  Steps missing in data module: ${missingSteps.join(', ')}`
+        }
+      }
 
       return steps.map(function (step, i) {
-        if (argv.steps && !(argv.steps.indexOf(step.name) > -1)) {
+        if (argv.steps && !(argvSteps.indexOf(step.name) > -1)) {
           // if steps command line argument is supplied, only execute steps in argv.steps
           // step.execute is the step's function to be executed,
           //   step.execute.name is the name of this function
@@ -192,7 +210,7 @@ if (argv._.length === 0) {
         return H.curry(wrapStep, step, d.config, dirs, tools)
       })
     })
-    .errors((err) => {
+    .stopOnError((err) => {
       errors = true
       console.error(err)
     })
