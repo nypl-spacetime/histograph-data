@@ -147,6 +147,7 @@ if (argv._.length === 0) {
       console.log('Done...')
     } else {
       console.log(chalk.red('Done, with errors...'))
+      process.exit(exitCode)
     }
   })
 
