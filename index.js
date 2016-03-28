@@ -139,8 +139,16 @@ if (argv._.length === 0) {
       console.log('\nUsage: node index.js [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]')
     })
 } else {
-  var exitCode = 0
-  process.on('exit', () => process.exit(exitCode))
+  var exitCode = 1
+  var errors = false
+  process.on('exit', () => {
+    writers.forEach((writer) => writer.close())
+    if (exitCode === 0) {
+      console.log('Done...')
+    } else {
+      console.log(chalk.red('Done, with errors...'))
+    }
+  })
 
   var writers = []
 
@@ -185,7 +193,7 @@ if (argv._.length === 0) {
       })
     })
     .errors((err) => {
-      exitCode = 1
+      errors = true
       console.error(err)
     })
     .flatten()
@@ -193,15 +201,12 @@ if (argv._.length === 0) {
     .nfcall([])
     .series()
     .errors((err) => {
-      exitCode = 1
+      errors = true
       console.error(err)
     })
     .done(function () {
-      writers.forEach((writer) => writer.close())
-      if (exitCode === 0) {
-        console.log('Done...')
-      } else {
-        console.log(chalk.red('Done, with errors...'))
+      if (!errors) {
+        exitCode = 0
       }
     })
 }
