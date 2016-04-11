@@ -54,9 +54,9 @@ var readModule = function (d) {
     }
 
     if (moduleNotFound) {
-      console.error(chalk.red('No data module: ') + d)
+      console.error(chalk.red('No valid ETL module: ') + d)
     } else {
-      console.error(chalk.red('Error loading data module: ') + d)
+      console.error(chalk.red('Error loading ETL module: ') + d)
     }
     console.log(chalk.gray(err.stack.split('\n').join('\n')))
 
@@ -128,7 +128,7 @@ var logModuleTitle = function (d) {
   console.log(util.format(' - %s %s', d.dataset, chalk.gray(gray.join(' - '))))
 }
 
-console.log('Using data modules in ' + chalk.underline(util.format('%s*', path.join(config.data.moduleDir, config.data.modulePrefix))))
+console.log('Using ETL modules in ' + chalk.underline(util.format('%s*', path.join(config.data.moduleDir, config.data.modulePrefix))))
 console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(path.join(config.data.outputDir, '<step>')))))
 
 if (argv._.length === 0) {
@@ -172,7 +172,7 @@ if (argv._.length === 0) {
     })
     .done(function () {
       if (!count) {
-        console.log(chalk.red('No data modules found...'))
+        console.log(chalk.red('No ETL modules found...'))
       }
 
       console.log('\nUsage: spacetime-etl [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]')
