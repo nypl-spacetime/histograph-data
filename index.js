@@ -6,11 +6,14 @@ var chalk = require('chalk')
 var H = require('highland')
 var config = require('histograph-config')
 var minimist = require('minimist')
+var moment = require('moment')
 
 var datasetWriter = require('./lib/dataset-writer')
 var datasetReader = require('./lib/dataset-reader')
 
 var argv = minimist(process.argv.slice(2))
+
+const STATUS_FILENAME = '.status.json'
 
 var readDir = H.wrapCallback(function (dir, callback) {
   return fs.readdir(dir, function (err, files) {
@@ -55,7 +58,7 @@ var readModule = function (d) {
     }
     console.log(chalk.gray(err.stack.split('\n').join('\n')))
 
-    return null
+    throw err
   }
 
   return {
@@ -70,19 +73,39 @@ var ensureDir = function (dir) {
   mkdirp.sync(dir)
 }
 
-var wrapStep = function (step, config, dir, writer, callback) {
+var readStatusFile = function (dir) {
+  var filename = path.join(dir, STATUS_FILENAME)
+  try {
+    return require(filename)
+  } catch (err) {
+    return null
+  }
+}
+
+var writeStatusFile = function (dir, success) {
+  var filename = path.join(dir, STATUS_FILENAME)
+  var status = {
+    date: new Date().toISOString(),
+    success: success
+  }
+  fs.writeFileSync(filename, JSON.stringify(status, null, 2) + '\n')
+}
+
+var wrapStep = function (step, config, dirs, tools, callback) {
   var done = false
   console.log(util.format('    %s %s', chalk.gray('executing:'), chalk.blue(step.name)))
 
   try {
-    step(config, dir, writer, function (err) {
+    step(config, dirs, tools, (err) => {
       if (!done) {
+        writeStatusFile(dirs.current, !err)
         console.log(util.format('    %s %s %s', chalk.gray('result:'), err ? chalk.red('error') : chalk.green('success'), err ? chalk.gray(err.message || err.stack || err) : ''))
         callback(err)
       }
       done = true
     })
   } catch (err) {
+    writeStatusFile(dirs.current, false)
     callback(err)
   }
 }
@@ -104,7 +127,7 @@ var logModuleTitle = function (d) {
 }
 
 console.log('Using data modules in ' + chalk.underline(util.format('%s*', path.join(config.data.moduleDir, config.data.modulePrefix))))
-console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(config.data.outputDir))))
+console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(path.join(config.data.outputDir, '<step>')))))
 
 if (argv._.length === 0) {
   var count = 0
@@ -113,22 +136,36 @@ if (argv._.length === 0) {
   readDir(config.data.moduleDir)
     .flatten()
     .map(readModule)
+    // Errors are handled by readModule function
+    .errors(() => {})
     .compact()
     .each(function (d) {
       logModuleTitle(d)
 
-      var stepsMessage
+      const stepsPadding = '    '
+      const stepsLabel = 'steps: '
+      const stepsFirst = chalk.gray(stepsLabel)
+      const stepsOther = new Array(stepsLabel.length + 1).join(' ');
       if (d.module.steps) {
-        // stepsMessage = chalk.blue((d.module.steps).map(function (f) { return f.name; }).join(', '))
-        stepsMessage = d.module.steps
-          .map((step) => chalk.blue(step.name))
-          .join(chalk.gray(', '))
+        d.module.steps.forEach((step, i) => {
+          const dir = path.join(config.data.outputDir, step.name, d.dataset)
+          const status = readStatusFile(dir)
+
+          var getStatusText = (text) => `${chalk.gray('(')}${text}${chalk.gray(')')}`
+          var statusText
+
+          if (status) {
+            const fromNow = chalk.bold(moment(status.date).fromNow())
+            const success = status.success ? chalk.green('success') : chalk.red('failed')
+            statusText = getStatusText(chalk.gray(`last ran ${fromNow}: ${success}`))
+          } else {
+            statusText = getStatusText(chalk.yellow('never ran'))
+          }
+          console.log(`${stepsPadding}${i === 0 ? stepsFirst : stepsOther}${chalk.blue(step.name)} ${statusText}`)
+        })
       } else {
-        stepsMessage = chalk.red('no steps found!')
+        console.log(`${stepsPadding}${stepsFirst}${chalk.red('no steps found!')}`)
       }
-
-      console.log(util.format('    %s %s', chalk.gray('steps:'), stepsMessage))
-
       count += 1
     })
     .done(function () {
@@ -166,17 +203,22 @@ if (argv._.length === 0) {
 
       if (argvSteps.length) {
         var missingSteps = []
-        var availableSteps = steps.map(step => step.name)
-        argvSteps.forEach(step => {
+        var availableSteps = steps.map((step) => step.name)
+        argvSteps.forEach((step) => {
           if (availableSteps.indexOf(step) === -1) {
             missingSteps.push(step)
           }
         })
 
         if (missingSteps.length) {
-          throw `  Steps missing in data module: ${missingSteps.join(', ')}`
+          throw new Error(`  Steps missing in data module: ${missingSteps.join(', ')}`)
         }
       }
+
+      var stepDirs = {}
+      steps.forEach((step) => {
+        stepDirs[step.name] = path.join(config.data.outputDir, step.name, d.dataset)
+      })
 
       return steps.map(function (step, i) {
         if (argv.steps && !(argvSteps.indexOf(step.name) > -1)) {
@@ -203,10 +245,10 @@ if (argv._.length === 0) {
 
         writers.push(tools.writer)
 
-        var dirs = {
+        var dirs = Object.assign({
           current: dir,
           previous: previousDir
-        }
+        }, stepDirs)
 
         return H.curry(wrapStep, step, d.config, dirs, tools)
       })
