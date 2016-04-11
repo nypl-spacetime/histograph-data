@@ -1,7 +1,7 @@
 {
   "name": "spacetime-etl",
   "version": "0.7.0",
-  "description": "ETL tool for Histograph",
+  "description": "ETL tool for Space/Time Directory",
   "main": "index.js",
   "devDependencies": {
     "standard": "^6.0.8"
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nypl-spacetime/histograph-data.git"
+    "url": "https://github.com/nypl-spacetime/spacetime-etl.git"
   },
   "author": "Waag Society",
   "license": "MIT",
@@ -22,8 +22,8 @@
     "chalk": "^1.1.1",
     "geojsonhint": "^1.1.0",
     "highland": "^2.5.1",
-    "histograph-config": "nypl-spacetime/histograph-config",
-    "histograph-schemas": "nypl-spacetime/histograph-schemas",
+    "spacetime-config": "nypl-spacetime/spacetime-config",
+    "spacetime-schemas": "nypl-spacetime/spacetime-schemas",
     "is-my-json-valid": "^2.12.3",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",

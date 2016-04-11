@@ -6,7 +6,7 @@ var path = require('path')
 var mkdirp = require('mkdirp')
 var chalk = require('chalk')
 var H = require('highland')
-var config = require('histograph-config')
+var config = require('spacetime-config')
 var minimist = require('minimist')
 var moment = require('moment')
 
@@ -175,7 +175,7 @@ if (argv._.length === 0) {
         console.log(chalk.red('No data modules found...'))
       }
 
-      console.log('\nUsage: node index.js [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]')
+      console.log('\nUsage: spacetime-etl [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]')
     })
 } else {
   var exitCode = 1
