@@ -26,10 +26,10 @@ var readDir = H.wrapCallback(function (dir, callback) {
 
     dirs = files
       .filter(function (file) {
-        return file.startsWith(config.data.modulePrefix)
+        return file.startsWith(config.etl.modulePrefix)
       })
       .map(function (dir) {
-        return dir.replace(config.data.modulePrefix, '')
+        return dir.replace(config.etl.modulePrefix, '')
       })
 
     callback(err, dirs)
@@ -39,8 +39,8 @@ var readDir = H.wrapCallback(function (dir, callback) {
 var readModule = function (d) {
   var module
   var meta
-  var modulePath = path.join(config.data.moduleDir, config.data.modulePrefix + d, d.replace(config.data.modulePrefix, ''))
-  var datasetPath = path.join(config.data.moduleDir, config.data.modulePrefix + d, util.format('%s.dataset.json', d))
+  var modulePath = path.join(config.etl.moduleDir, config.etl.modulePrefix + d, d.replace(config.etl.modulePrefix, ''))
+  var datasetPath = path.join(config.etl.moduleDir, config.etl.modulePrefix + d, util.format('%s.dataset.json', d))
 
   try {
     module = require(modulePath)
@@ -65,7 +65,7 @@ var readModule = function (d) {
 
   return {
     dataset: d,
-    config: config.data.modules[d],
+    config: config.etl.modules[d],
     meta: meta,
     module: module
   }
@@ -128,14 +128,14 @@ var logModuleTitle = function (d) {
   console.log(util.format(' - %s %s', d.dataset, chalk.gray(gray.join(' - '))))
 }
 
-console.log('Using ETL modules in ' + chalk.underline(util.format('%s*', path.join(config.data.moduleDir, config.data.modulePrefix))))
-console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(path.join(config.data.outputDir, '<step>')))))
+console.log('Using ETL modules in ' + chalk.underline(util.format('%s*', path.join(config.etl.moduleDir, config.etl.modulePrefix))))
+console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(path.join(config.etl.outputDir, '<step>')))))
 
 if (argv._.length === 0) {
   var count = 0
 
   // List data modules - don't run anything
-  readDir(config.data.moduleDir)
+  readDir(config.etl.moduleDir)
     .flatten()
     .map(readModule)
     // Errors are handled by readModule function
@@ -150,7 +150,7 @@ if (argv._.length === 0) {
       const stepsOther = new Array(stepsLabel.length + 1).join(' ');
       if (d.module.steps) {
         d.module.steps.forEach((step, i) => {
-          const dir = path.join(config.data.outputDir, step.name, d.dataset)
+          const dir = path.join(config.etl.outputDir, step.name, d.dataset)
           const status = readStatusFile(dir)
 
           var getStatusText = (text) => `${chalk.gray('(')}${text}${chalk.gray(')')}`
@@ -219,7 +219,7 @@ if (argv._.length === 0) {
 
       var stepDirs = {}
       steps.forEach((step) => {
-        stepDirs[step.name] = path.join(config.data.outputDir, step.name, d.dataset)
+        stepDirs[step.name] = path.join(config.etl.outputDir, step.name, d.dataset)
       })
 
       return steps.map(function (step, i) {
@@ -230,12 +230,12 @@ if (argv._.length === 0) {
           return null
         }
 
-        var dir = path.join(config.data.outputDir, step.name, d.dataset)
+        var dir = path.join(config.etl.outputDir, step.name, d.dataset)
 
         // Set directory of previous step
         var previousDir
         if (i > 0) {
-          previousDir = path.join(config.data.outputDir, steps[i - 1].name, d.dataset)
+          previousDir = path.join(config.etl.outputDir, steps[i - 1].name, d.dataset)
         }
 
         ensureDir(dir)
