@@ -63,9 +63,15 @@ var readModule = function (d) {
     throw err
   }
 
+  var moduleConfig = {}
+
+  if (config.etl.modules && config.etl.modules[d]) {
+    moduleConfig = config.etl.modules[d]
+  }
+
   return {
     dataset: d,
-    config: config.etl.modules[d],
+    config: moduleConfig,
     meta: meta,
     module: module
   }
@@ -139,7 +145,9 @@ if (argv._.length === 0) {
     .flatten()
     .map(readModule)
     // Errors are handled by readModule function
-    .errors(() => {})
+    .errors((err) => {
+      console.log(err)
+    })
     .compact()
     .each(function (d) {
       logModuleTitle(d)
