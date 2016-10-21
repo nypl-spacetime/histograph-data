@@ -1,6 +1,6 @@
 # Space/Time ETL tool
 
-Extract/Transform/Load tool for Space/Time data tool. spacetime-etl loads separate data modules which perform ETL tasks.
+Extract/Transform/Load tool for Space/Time data: loads separate data modules which perform ETL tasks, such as downloading and transforming data to the Space/Time data model.
 
 ## Configuration
 
