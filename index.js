@@ -1,283 +1,208 @@
 #!/usr/bin/env node
 
-var fs = require('fs')
-var util = require('util')
-var path = require('path')
-var mkdirp = require('mkdirp')
-var chalk = require('chalk')
-var H = require('highland')
-var config = require('spacetime-config')
-var minimist = require('minimist')
-var moment = require('moment')
+const fs = require('fs')
+const path = require('path')
+const H = require('highland')
+const mkdirp = require('mkdirp')
+const config = require('spacetime-config')
 
-var datasetWriter = require('./lib/dataset-writer')
-var datasetReader = require('./lib/dataset-reader')
+const modules = require('./lib/modules')
+const logging = require('./lib/logging')
+const datasetWriter = require('./lib/dataset-writer')
 
-var argv = minimist(process.argv.slice(2))
+const STATUS_FILENAME = 'etl-results.json'
 
-const STATUS_FILENAME = '.status.json'
-
-var readDir = H.wrapCallback(function (dir, callback) {
-  return fs.readdir(dir, function (err, files) {
-    var dirs = []
-    if (!err) {
-      dirs = files || []
-    }
-
-    dirs = files
-      .filter(function (file) {
-        return file.startsWith(config.etl.modulePrefix)
-      })
-      .map(function (dir) {
-        return dir.replace(config.etl.modulePrefix, '')
-      })
-
-    callback(err, dirs)
-  })
-})
-
-var readModule = function (d) {
-  var module
-  var meta
-  var modulePath = path.join(config.etl.moduleDir, config.etl.modulePrefix + d, d.replace(config.etl.modulePrefix, ''))
-  var datasetPath = path.join(config.etl.moduleDir, config.etl.modulePrefix + d, util.format('%s.dataset.json', d))
-
-  try {
-    module = require(modulePath)
-    meta = require(datasetPath)
-  } catch (err) {
-    var moduleNotFound = (err.code === 'MODULE_NOT_FOUND')
-
-    if (moduleNotFound) {
-      // See if module itself is not found, or a module required by the module!
-      moduleNotFound = err.message.includes(modulePath)
-    }
-
-    if (moduleNotFound) {
-      console.error(chalk.red('No valid ETL module: ') + d)
-    } else {
-      console.error(chalk.red('Error loading ETL module: ') + d)
-    }
-    console.log(chalk.gray(err.stack.split('\n').join('\n')))
-
-    throw err
-  }
-
-  var moduleConfig = {}
-
-  if (config.etl.modules && config.etl.modules[d]) {
-    moduleConfig = config.etl.modules[d]
-  }
-
-  return {
-    dataset: d,
-    config: moduleConfig,
-    meta: meta,
-    module: module
-  }
-}
-
-var ensureDir = function (dir) {
+function ensureDir (dir) {
   mkdirp.sync(dir)
 }
 
-var readStatusFile = function (dir) {
-  var filename = path.join(dir, STATUS_FILENAME)
+function checkConfig (config) {
+  if (!config || !config.etl) {
+    throw new Error('Configuration file should have \'etl\' section')
+  }
+
+  const etlConfig = config.etl
+
+  const checkKey = (key) => {
+    if (!etlConfig[key]) {
+      throw new Error(`'${key}' missing in 'etl' section of configuration file`)
+    }
+  }
+
+  checkKey('moduleDir')
+  checkKey('modulePrefix')
+  checkKey('outputDir')
+}
+
+checkConfig(config)
+
+function executeStep (module, step, log, callback) {
+  const stepFn = module.stepObj[step].fn
+  const currentDir = module.stepObj[step].outputDir
+
+  if (log) {
+    logging.stepStart(step)
+  }
+
+  // Set directory of previous step
+  let previousDir
+  const stepIndex = module.stepObj[step].index
+  if (stepIndex > 0) {
+    const previousStep = module.steps[stepIndex - 1]
+    previousDir = module.stepObj[previousStep].outputDir
+  }
+
   try {
-    return require(filename)
+    ensureDir(currentDir)
   } catch (err) {
-    return null
+    callback(err)
+    return
   }
-}
 
-var writeStatusFile = function (dir, success) {
-  var filename = path.join(dir, STATUS_FILENAME)
-  var status = {
-    date: new Date().toISOString(),
-    success: success
+  const tools = {
+    writer: datasetWriter(module.id, currentDir, module.dataset)
   }
-  fs.writeFileSync(filename, JSON.stringify(status, null, 2) + '\n')
-}
 
-var wrapStep = function (step, config, dirs, tools, callback) {
-  var done = false
-  console.log(util.format('    %s %s', chalk.gray('executing:'), chalk.blue(step.name)))
+  const dirs = Object.assign({
+    current: currentDir,
+    previous: previousDir
+  }, module.stepOutputDirs)
 
   try {
-    step(config, dirs, tools, (err) => {
+    let done = false
+
+    stepFn(module.config, dirs, tools, (err) => {
       if (!done) {
-        writeStatusFile(dirs.current, !err)
-        console.log(util.format('    %s %s %s', chalk.gray('result:'), err ? chalk.red('error') : chalk.green('success'), err ? chalk.gray(err.message || err.stack || err) : ''))
-        callback(err)
+        if (log) {
+          logging.stepDone(err)
+        }
+
+        tools.writer.close()
+
+        if (err) {
+          writeStatusFile(module, step, currentDir, err)
+          callback(err)
+        } else {
+          writeStatusFile(module, step, currentDir, err, tools.writer.getStats())
+          callback()
+        }
       }
+
       done = true
     })
   } catch (err) {
-    writeStatusFile(dirs.current, false)
+    writeStatusFile(module, step, currentDir, err)
     callback(err)
   }
 }
 
-var logModuleTitle = function (d) {
-  var gray = []
-
-  if (d.meta) {
-    if (d.meta.title) {
-      gray.push(d.meta.title)
-    }
-
-    if (d.meta.website) {
-      gray.push(chalk.underline(d.meta.website))
-    }
+function writeStatusFile (module, step, dir, err, stats) {
+  const filename = path.join(dir, STATUS_FILENAME)
+  const status = {
+    step,
+    date: new Date().toISOString(),
+    success: err === undefined,
+    dataset: module.dataset,
+    stats
   }
 
-  console.log(util.format(' - %s %s', d.dataset, chalk.gray(gray.join(' - '))))
+  fs.writeFileSync(filename, JSON.stringify(status, null, 2) + '\n')
 }
 
-console.log('Using ETL modules in ' + chalk.underline(util.format('%s*', path.join(config.etl.moduleDir, config.etl.modulePrefix))))
-console.log(chalk.gray(util.format('  Saving data to %s\n', chalk.underline(path.join(config.etl.outputDir, '<step>')))))
+function parseCommand (command) {
+  if (!command.length || command.endsWith('.')) {
+    throw new Error(`Incorrect command: '${command}' - should be of form 'moduleId[.step]'`)
+  }
 
-if (argv._.length === 0) {
-  var count = 0
+  const parts = command.split('.')
+  return {
+    moduleId: parts[0],
+    step: parts[1]
+  }
+}
 
-  // List data modules - don't run anything
-  readDir(config.etl.moduleDir)
-    .flatten()
-    .map(readModule)
-    // Errors are handled by readModule function
-    .errors((err) => {
-      console.log(err)
-    })
-    .compact()
-    .each(function (d) {
-      logModuleTitle(d)
+function execute (command, callback, log) {
+  let moduleId
+  let step
+  try {
+    ({moduleId, step} = parseCommand(command))
+  } catch (err) {
+    callback(err)
+    return
+  }
 
-      const stepsPadding = '    '
-      const stepsLabel = 'steps: '
-      const stepsFirst = chalk.gray(stepsLabel)
-      const stepsOther = new Array(stepsLabel.length + 1).join(' ');
-      if (d.module.steps) {
-        d.module.steps.forEach((step, i) => {
-          const dir = path.join(config.etl.outputDir, step.name, d.dataset)
-          const status = readStatusFile(dir)
+  const module = modules.readModule(config, moduleId)
 
-          var getStatusText = (text) => `${chalk.gray('(')}${text}${chalk.gray(')')}`
-          var statusText
-
-          if (status) {
-            const fromNow = chalk.bold(moment(status.date).fromNow())
-            const success = status.success ? chalk.green('success') : chalk.red('failed')
-            statusText = getStatusText(chalk.gray(`last ran ${fromNow}: ${success}`))
-          } else {
-            statusText = getStatusText(chalk.yellow('never ran'))
-          }
-          console.log(`${stepsPadding}${i === 0 ? stepsFirst : stepsOther}${chalk.blue(step.name)} ${statusText}`)
-        })
-      } else {
-        console.log(`${stepsPadding}${stepsFirst}${chalk.red('no steps found!')}`)
-      }
-      count += 1
-    })
-    .done(function () {
-      if (!count) {
-        console.log(chalk.red('No ETL modules found...'))
-      }
-
-      console.log('\nUsage: spacetime-etl [--all] [--steps [step1,step2,...]] [--config /path/to/config.yml] [module ...]')
-    })
-} else {
-  var exitCode = 1
-  var errors = false
-  process.on('exit', () => {
-    writers.forEach((writer) => writer.close())
-    if (exitCode === 0) {
-      console.log('Done...')
-    } else {
-      console.log(chalk.red('Done, with errors...'))
-      process.exit(exitCode)
+  if (module.err) {
+    callback(module.err)
+  } else {
+    if (log) {
+      logging.logModuleTitle(module)
     }
-  })
 
-  var writers = []
-
-  H(argv._)
-    .map(readModule)
-    .compact()
-    .map(function (d) {
-      logModuleTitle(d)
-      var steps = d.module.steps
-      var argvSteps = []
-      if (argv.steps) {
-        argvSteps = argv.steps.split(',')
+    if (step) {
+      if (module.steps.includes(step)) {
+        executeStep(module, step, log, callback)
+      } else {
+        callback(new Error(`Module ${moduleId} does not contain step '${step}'`))
       }
+    } else {
+      let errors = false
 
-      if (argvSteps.length) {
-        var missingSteps = []
-        var availableSteps = steps.map((step) => step.name)
-        argvSteps.forEach((step) => {
-          if (availableSteps.indexOf(step) === -1) {
-            missingSteps.push(step)
+      H(module.steps)
+        .map((step) => H.curry(executeStep, module, step, log))
+        .nfcall()
+        .series()
+        .stopOnError((err) => {
+          errors = true
+          callback(err)
+        })
+        .done(() => {
+          if (!errors) {
+            callback()
           }
         })
-
-        if (missingSteps.length) {
-          throw new Error(`  Steps missing in data module: ${missingSteps.join(', ')}`)
-        }
-      }
-
-      var stepDirs = {}
-      steps.forEach((step) => {
-        stepDirs[step.name] = path.join(config.etl.outputDir, step.name, d.dataset)
-      })
-
-      return steps.map(function (step, i) {
-        if (argv.steps && !(argvSteps.indexOf(step.name) > -1)) {
-          // if steps command line argument is supplied, only execute steps in argv.steps
-          // step.execute is the step's function to be executed,
-          //   step.execute.name is the name of this function
-          return null
-        }
-
-        var dir = path.join(config.etl.outputDir, step.name, d.dataset)
-
-        // Set directory of previous step
-        var previousDir
-        if (i > 0) {
-          previousDir = path.join(config.etl.outputDir, steps[i - 1].name, d.dataset)
-        }
-
-        ensureDir(dir)
-
-        var tools = {
-          writer: datasetWriter(d.dataset, dir, d.meta),
-          reader: datasetReader
-        }
-
-        writers.push(tools.writer)
-
-        var dirs = Object.assign({
-          current: dir,
-          previous: previousDir
-        }, stepDirs)
-
-        return H.curry(wrapStep, step, d.config, dirs, tools)
-      })
-    })
-    .stopOnError((err) => {
-      errors = true
-      console.error(err)
-    })
-    .flatten()
-    .compact()
-    .nfcall([])
-    .series()
-    .errors((err) => {
-      errors = true
-      console.error(err)
-    })
-    .done(function () {
-      if (!errors) {
-        exitCode = 0
-      }
-    })
+    }
+  }
 }
+
+if (require.main === module) {
+  const minimist = require('minimist')
+  const argv = minimist(process.argv.slice(2))
+
+  let exitCode = 1
+  let errors = false
+  process.on('exit', () => process.exit(exitCode))
+
+  if (argv._.length === 0) {
+    let count = 0
+
+    logging.logModulesStart(config)
+
+    H(modules.readDir(config))
+      .map((moduleId) => modules.readModule(config, moduleId))
+      .map((module) => logging.logModule(module, config.etl.modulePath))
+      .each(() => count++)
+      .done(() => {
+        logging.logModulesEnd(count)
+      })
+  } else {
+    const reorderedExecute = (command, log, callback) => execute(command, callback, log)
+
+    H(argv._)
+      .map((command) => H.curry(reorderedExecute, command, true))
+      .nfcall([])
+      .series()
+      .stopOnError((err) => {
+        errors = true
+        logging.stepsDone(err)
+      })
+      .done(() => {
+        if (!errors) {
+          logging.stepsDone()
+        }
+      })
+  }
+}
+
+module.exports = execute
