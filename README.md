@@ -4,6 +4,8 @@
 
 For more information about the NYC Space/Time Directory project, as well as datasets produced by spacetime-etl, see http://spacetime.nypl.org.
 
+![](spacetime-etl.png)
+
 ## ETL Modules
 
 Space/Time's ETL modules are separate Node.js modules which need to be installed individually. Each ETL module represents a NYC Space/Time Directory dataset or data transformation, and defines a set of _steps_; spacetime-etl loads these modules, and executes the steps they define.
@@ -12,7 +14,7 @@ Some examples:
 
 | ETL Module                                                                     | Description
 |--------------------------------------------------------------------------------|-----------------------------------------
-| [`etl-mapwarper`](https://github.com/nypl-spacetime/)                          | Outlines of thousands of maps from [Map Warper](http://maps.nypl.org/warper/), NYPL's tool for georectifying historical maps
+| [`etl-mapwarper`](https://github.com/nypl-spacetime/etl-mapwarper)                          | Outlines of maps from [Map Warper](http://maps.nypl.org/warper/), NYPL's tool for georectifying historical maps
 | [`etl-group-maps`](https://github.com/nypl-spacetime/etl-group-maps)           | Map Warper maps, grouped by decade — used by [Maps by Decade](http://spacetime.nypl.org/maps-by-decade/#/)
 | [`etl-spacetime-graph`](https://github.com/nypl-spacetime/etl-spacetime-graph) | Graph of all NYC Space/Time Directory datasets
 | [`etl-oldnyc`](https://github.com/nypl-spacetime/etl-oldnyc)                   | Locations of 40,000 geotagged photos from [OldNYC](https://www.oldnyc.org/)
@@ -102,9 +104,7 @@ Installation:
 npm install nypl-spacetime/spacetime-etl
 ```
 
-Usage:
-
-(to run this example, first install [`etl-mapwarper`](https://github.com/nypl-spacetime/etl-mapwarper), see [Installing ETL Modules](#installing-etl-modules).)
+Usage (to run this example, first install [`etl-mapwarper`](https://github.com/nypl-spacetime/etl-mapwarper), see [Installing ETL Modules](#installing-etl-modules)):
 
 ```js
 const etl = require('spacetime-etl')
@@ -121,7 +121,7 @@ etl('mapwarper', (err) => {
 
 The produced data files are written in a subdirectory of the configured output directory: `<outputDir>/<step>/mapwarper`.
 
-## Creating an ETL module yourself
+## Creating an ETL module from scratch
 
 It's easy! Let's say we want to write a scraper which, very illegally, reads photos and their metadata from the [NYC Municipal Archives Online Gallery](http://nycma.lunaimaging.com/luna/servlet/detail/RECORDSPHOTOUNITARC~21~21~617236~111844:dma_16095).
 
