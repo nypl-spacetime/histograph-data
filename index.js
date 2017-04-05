@@ -63,7 +63,9 @@ function executeStep (module, step, log, callback) {
     writer: datasetWriter(module.id, currentDir, module.dataset)
   }
 
+  const outputDir = config.etl.outputDir
   const dirs = Object.assign({
+    getDir: (datasetId, step) => path.join(outputDir, step, datasetId),
     current: currentDir,
     previous: previousDir
   }, module.stepOutputDirs)
