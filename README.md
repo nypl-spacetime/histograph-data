@@ -29,7 +29,7 @@ The following configuration options must be specified:
 
 | Parameter      | Description
 |----------------|-----------------------------------------------------------------------------------------
-| `baseDir`      | Path (absolute, or relative to data tool) where spacetime-etl looks for data modules
+| `moduleDir`    | Path (absolute, or relative to data tool) where spacetime-etl looks for data modules
 | `modulePrefix` | Directory prefix used to identify data modules (e.g. `etl-mapwarper`) — default is `etl-`
 | `outputDir`    | Directory to which ETL modules write their data
 
