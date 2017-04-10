@@ -57,7 +57,7 @@ etl:
 
 ### Installing ETL Modules
 
-To use spacetime-etl to run ETL modules, you first need to install them. Go to the directory specified by the `baseDir` configuration option, and clone the ETL modules you need, for example:
+To use spacetime-etl to run ETL modules, you first need to install them. Go to the directory specified by the `moduleDir` configuration option, and clone the ETL modules you need, for example:
 
     git clone https://github.com/nypl-spacetime/etl-nyc-wards.git
     git clone https://github.com/nypl-spacetime/etl-mapwarper.git
@@ -125,7 +125,7 @@ The produced data files are written in a subdirectory of the configured output d
 
 It's easy! Let's say we want to write a scraper which, very illegally, reads photos and their metadata from the [NYC Municipal Archives Online Gallery](http://nycma.lunaimaging.com/luna/servlet/detail/RECORDSPHOTOUNITARC~21~21~617236~111844:dma_16095).
 
-First, create a directory in spacetime-etl's `baseDir` with the following name:
+First, create a directory in spacetime-etl's `moduleDir` with the following name:
 
     mkdir etl-nyc-municipal-archives
 
