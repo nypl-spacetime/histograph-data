@@ -19,9 +19,9 @@
   "author": "Waag Society",
   "license": "MIT",
   "dependencies": {
+    "@mapbox/geojsonhint": "^2.0.1",
     "chalk": "^1.1.3",
     "edtf": "^2.0.1",
-    "geojsonhint": "^2.0.0",
     "highland": "^2.10.5",
     "is-my-json-valid": "^2.16.0",
     "minimist": "^1.2.0",
