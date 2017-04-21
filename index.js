@@ -60,7 +60,8 @@ function executeStep (module, step, log, callback) {
   }
 
   const tools = {
-    writer: datasetWriter(module.id, currentDir, module.dataset)
+    writer: datasetWriter(module.id, currentDir, module.dataset),
+    modules: allModules
   }
 
   const outputDir = config.etl.outputDir
@@ -100,13 +101,13 @@ function executeStep (module, step, log, callback) {
 
 function writeStatusFile (module, step, dir, err, stats) {
   const filename = path.join(dir, STATUS_FILENAME)
-  const status = {
+  const status = Object.assign({
     step,
     date: new Date().toISOString(),
     success: err === undefined,
-    dataset: module.dataset,
-    stats
-  }
+    error: err && err.message,
+    dataset: module.dataset
+  }, stats)
 
   fs.writeFileSync(filename, JSON.stringify(status, null, 2) + '\n')
 }

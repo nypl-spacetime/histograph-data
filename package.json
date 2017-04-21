@@ -1,6 +1,6 @@
 {
   "name": "spacetime-etl",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "ETL tool for Space/Time Directory",
   "main": "index.js",
   "devDependencies": {
