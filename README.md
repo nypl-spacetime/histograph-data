@@ -109,7 +109,21 @@ Usage (to run this example, first install [`etl-mapwarper`](https://github.com/n
 ```js
 const etl = require('spacetime-etl')
 
-etl('mapwarper', (err) => {
+// Fetch all installed ETL modules:
+const modules = etl.modules()
+
+// Execute all steps:
+etl.execute('mapwarper', (err) => {
+  if (err) {
+    console.error('Error:')
+    console.error(err)
+  } else {
+    console.log('Done!')
+  }
+})
+
+// Execute a single step:
+etl.execute('nyc-streets.download', (err) => {
   if (err) {
     console.error('Error:')
     console.error(err)

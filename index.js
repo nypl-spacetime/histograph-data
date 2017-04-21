@@ -123,6 +123,10 @@ function parseCommand (command) {
   }
 }
 
+function allModules () {
+  return modules.allModules(config)
+}
+
 function execute (command, callback, log) {
   let moduleId
   let step
@@ -207,4 +211,7 @@ if (require.main === module) {
   }
 }
 
-module.exports = execute
+module.exports = {
+  modules: allModules,
+  execute
+}
