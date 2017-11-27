@@ -1,6 +1,6 @@
 {
   "name": "spacetime-etl",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "ETL tool for Space/Time Directory",
   "main": "index.js",
   "devDependencies": {
@@ -16,7 +16,7 @@
     "type": "git",
     "url": "https://github.com/nypl-spacetime/spacetime-etl.git"
   },
-  "author": "Waag Society",
+  "author": "Bert Spaan",
   "license": "MIT",
   "dependencies": {
     "@mapbox/geojsonhint": "^2.0.1",

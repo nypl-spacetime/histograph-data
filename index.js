@@ -103,10 +103,10 @@ function writeStatusFile (module, step, dir, err, stats) {
   const filename = path.join(dir, STATUS_FILENAME)
   const status = Object.assign({
     step,
+    version: module.package.version,
     date: new Date().toISOString(),
     success: err === undefined,
-    error: err && err.message,
-    dataset: module.dataset
+    error: err && err.message
   }, stats)
 
   fs.writeFileSync(filename, JSON.stringify(status, null, 2) + '\n')
