@@ -66,7 +66,7 @@ function executeStep (module, step, log, callback) {
 
   const outputDir = config.etl.outputDir
   const dirs = Object.assign({
-    getDir: (datasetId, step) => path.join(outputDir, step, datasetId),
+    getDir: (datasetId, step) => path.join(outputDir, step || '', datasetId || ''),
     current: currentDir,
     previous: previousDir
   }, module.stepOutputDirs)

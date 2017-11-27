@@ -1,7 +1,7 @@
 {
   "name": "spacetime-etl",
-  "version": "0.10.0",
-  "description": "ETL tool for Space/Time Directory",
+  "version": "0.11.0",
+  "description": "Extract/Transform/Load tool for NYC Space/Time Directory",
   "main": "index.js",
   "devDependencies": {
     "standard": "^6.0.8"
@@ -23,11 +23,10 @@
     "chalk": "^1.1.3",
     "fuzzy-dates": "github:nypl-spacetime/fuzzy-dates",
     "highland": "^2.10.5",
-    "is-my-json-valid": "^2.16.0",
+    "jsonschema": "^1.2.0",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "moment": "^2.18.1",
-    "ramda": "^0.23.0",
     "spacetime-config": "nypl-spacetime/spacetime-config",
     "spacetime-schemas": "nypl-spacetime/spacetime-schemas"
   }
