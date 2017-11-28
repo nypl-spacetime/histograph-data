@@ -1,6 +1,6 @@
 {
   "name": "spacetime-etl",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Extract/Transform/Load tool for NYC Space/Time Directory",
   "main": "index.js",
   "devDependencies": {
