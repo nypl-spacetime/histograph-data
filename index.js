@@ -74,7 +74,7 @@ function executeStep (module, step, log, callback) {
   try {
     let done = false
 
-    stepFn(module.config, dirs, tools, (err) => {
+    stepFn(Object.assign({}, module.config), dirs, tools, (err) => {
       if (!done) {
         if (log) {
           logging.stepDone(err)
