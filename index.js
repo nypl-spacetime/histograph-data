@@ -177,9 +177,8 @@ if (require.main === module) {
   const minimist = require('minimist')
   const argv = minimist(process.argv.slice(2))
 
-  let exitCode = 1
   let errors = false
-  process.on('exit', () => process.exit(exitCode))
+  process.on('exit', () => process.exit(errors ? 1 : 0))
 
   if (argv._.length === 0) {
     let count = 0
