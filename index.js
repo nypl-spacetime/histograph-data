@@ -4,11 +4,13 @@ const fs = require('fs')
 const path = require('path')
 const H = require('highland')
 const mkdirp = require('mkdirp')
+
 const config = require('spacetime-config')
+const schemas = require('spacetime-schemas')
 
 const modules = require('./lib/modules')
 const logging = require('./lib/logging')
-const datasetWriter = require('./lib/dataset-writer')
+const DatasetWriter = require('./lib/dataset-writer')
 
 const STATUS_FILENAME = 'etl-results.json'
 
@@ -60,7 +62,7 @@ function executeStep (module, step, log, callback) {
   }
 
   const tools = {
-    writer: datasetWriter(module.id, currentDir, module.dataset),
+    writer: DatasetWriter(schemas, config.etl, module.id, currentDir, module.dataset),
     modules: allModules
   }
 
